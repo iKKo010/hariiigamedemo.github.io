@@ -8,11 +8,11 @@
         :root {
             --blue-50: #f0f9ff;
             --blue-100: #e0f2fe;
-            --blue-200: #c8ebfd;
-            --blue-300: #b6e6fc;
-            --blue-400: #6bd3ff;
-            --blue-500: #26abe9;
-            --blue-600: #1e8bc2;
+            --blue-200: #bae6fd;
+            --blue-300: #7dd3fc;
+            --blue-400: #38bdf8;
+            --blue-500: #0ea5e9;
+            --blue-600: #0284c7;
             --blue-700: #0369a1;
             --blue-800: #075985;
             --blue-900: #0c4a6e;
@@ -20,8 +20,6 @@
             --sidebar-level1: var(--blue-50);
             --sidebar-level2: var(--blue-100);
             --sidebar-level3: var(--blue-200);
-            --sidebar-level4: var(--blue-300);
-            --sidebar-level5: var(--blue-400);
             --win-color: #27ae60;
             --lose-color: #e74c3c;
             --final-win: #f1c40f;
@@ -67,63 +65,42 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .path-nav {
-            color: var(--blue-700);
-            font-weight: 600;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: var(--blue-50);
-            border-radius: 8px;
-        }
-
-        .nav-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        .nav-buttons button {
-            padding: 8px 15px;
-            border: 2px solid var(--blue-500);
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .nav-buttons button:hover {
-            background: var(--blue-100);
-        }
-
+        /* 修复搜索框样式 */
         .search-box {
-            display: flex;
-            align-items: center;
-            width: 100%;
+            width: calc(100% - 30px);
             margin: 0 auto 20px;
             position: relative;
-            background: white;
-            border-radius: 20px;
-            border: 2px solid var(--primary-color);
+            box-sizing: border-box;
         }
-        .search-filter {
-            padding: 0 15px;
-            height: 100%;
-            border: none;
-            background: transparent;
-            appearance: none;
-            font-size: 14px;
-            border-right: 1px solid var(--blue-200);
-            outline: none;
-        }
+
         #searchInput {
-            flex: 1;
-            border: none;
-            padding: 10px 15px;
+            width: 100%;
+            padding: 10px 35px 10px 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 20px;
             font-size: 14px;
-            background: transparent;
-            outline: none;
+            transition: all 0.3s;
+            box-sizing: border-box;
         }
+
         .search-icon {
-            padding: 0 15px;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--blue-500);
             cursor: pointer;
+        }
+
+        /* 层级颜色 */
+        details > summary {
+            background: var(--sidebar-level1);
+        }
+        details > details > summary {
+            background: var(--sidebar-level2);
+        }
+        details > details > details > summary {
+            background: var(--sidebar-level3);
         }
 
         details > summary {
@@ -150,26 +127,6 @@
 
         details[open] > summary::after {
             transform: rotate(180deg);
-        }
-
-        details:nth-of-type(1)>summary {
-            background: var(--sidebar-level1);
-        }
-
-        details details:nth-of-type(1)>summary {
-            background: var(--sidebar-level2);
-        }
-
-        details details details:nth-of-type(1)>summary {
-            background: var(--sidebar-level3);
-        }
-
-        details details details details:nth-of-type(1)>summary {
-            background: var(--sidebar-level4);
-        }
-
-        details details details details details:nth-of-type(1)>summary {
-            background: var(--sidebar-level5);
         }
 
         .event-link {
@@ -231,6 +188,8 @@
             margin-right: 8px;
             filter: drop-shadow(0 0 2px rgba(241, 196, 15, 0.5));
         }
+
+
     </style>
 </head>
 <body>
@@ -242,18 +201,12 @@
     <div class="container">
         <div class="sidebar" id="sidebar">
             <div class="search-box">
-                <select id="searchType" class="search-filter">
-                    <option value="event">搜赛事</option>
-                    <option value="player">搜选手</option>
-                </select>
                 <input type="text" id="searchInput" placeholder="搜索比赛名称或对手...">
                 <i class="fas fa-search search-icon"></i>
                 <div class="search-results" id="searchResults"></div>
             </div>
         </div>
-        <div class="content" id="content">
-            <div class="path-nav" id="pathNav"></div>
-        </div>
+        <div class="content" id="content"></div>
     </div>
 
     <script>
@@ -273,9 +226,7 @@ async function initialize() {
 }
 
 
-        let historyStack = [];
-        let currentIndex = -1;
-
+        // 冠军统计逻辑
         function countChampions(dataNode) {
             let count = 0;
             if (Array.isArray(dataNode)) {
@@ -290,114 +241,90 @@ async function initialize() {
             return count;
         }
 
-        function buildNavigation() {
-            const sidebar = document.getElementById('sidebar');
-            const searchBox = document.querySelector('.search-box').outerHTML;
-            sidebar.innerHTML = searchBox;
+    // 构建导航
+    function buildNavigation() {
+        const sidebar = document.getElementById('sidebar');
+        const searchBox = document.querySelector('.search-box').outerHTML;
+        sidebar.innerHTML = searchBox;
 
-            const navContainer = document.createElement('div');
-            Object.entries(fullData).forEach(([category, years]) => {
-                const categoryEl = document.createElement('details');
-                const categoryCount = countChampions(years);
-                categoryEl.innerHTML = `<summary>${category}（${categoryCount}）</summary>`;
+        const navContainer = document.createElement('div');
+        Object.entries(fullData).forEach(([category, years]) => {
+            const categoryEl = document.createElement('details');
+            const categoryCount = countChampions(years);
+            categoryEl.innerHTML = `
+                <summary>
+                    ${category}（${categoryCount}）
+                </summary>
+            `;
 
-                Object.keys(years).sort().forEach(year => {
-                    const yearEl = document.createElement('details');
-                    const yearCount = countChampions(years[year]);
-                    yearEl.innerHTML = `<summary>${year}年（${yearCount}）</summary>`;
+            Object.keys(years).sort().forEach(year => {
+                const yearEl = document.createElement('details');
+                const yearCount = countChampions(years[year]);
+                yearEl.innerHTML = `
+                    <summary>
+                        ${year}年（${yearCount}）
+                    </summary>
+                `;
 
-                    Object.entries(years[year]).forEach(([month, events]) => {
-                        const monthEl = document.createElement('details');
-                        const monthCount = countChampions(events);
-                        monthEl.innerHTML = `<summary>${month}${renderTrophy(monthCount)}</summary>`;
+                Object.entries(years[year]).forEach(([month, events]) => {
+                    const monthEl = document.createElement('details');
+                    const monthCount = countChampions(events);
+                    monthEl.innerHTML = `
+                        <summary>
+                            ${month}${renderTrophy(monthCount)}
+                        </summary>
+                    `;
 
-                        events.forEach(event => {
-                            const eventEl = document.createElement('details');
-                            const eventCount = countChampions([event]);
-                            eventEl.innerHTML = `<summary>${event.比赛名称}${renderTrophy(eventCount)}</summary>`;
+                    events.forEach(event => {
+                        const eventEl = document.createElement('details');
+                        const eventCount = countChampions([event]);
+                        // 修改比赛名称显示方式
+                        eventEl.innerHTML = `
+                            <summary>
+                                ${event.比赛名称}${renderTrophy(eventCount)}
+                            </summary>
+                        `;
 
-                            Object.entries(event.项目).forEach(([project, rounds]) => {
-                                const projectEl = document.createElement('a');
-                                projectEl.className = 'event-link';
-                                const projectCount = rounds.filter(r => r.决赛 && r.结果 === '胜').length;
-                                projectEl.innerHTML = `${project}${renderTrophy(projectCount)}`;
-                                projectEl.onclick = () => {
-                                    historyStack.splice(currentIndex + 1);
-                                    historyStack.push({ event, project });
-                                    currentIndex++;
-                                    renderEventDetails(event, project);
-                                };
-                                eventEl.appendChild(projectEl);
-                            });
-                            monthEl.appendChild(eventEl);
+                        Object.entries(event.项目).forEach(([project, rounds]) => {
+                            const projectEl = document.createElement('a');
+                            projectEl.className = 'event-link';
+                            const projectCount = rounds.filter(r => r.决赛 && r.结果 === '胜').length;
+                            projectEl.innerHTML = `${project}${renderTrophy(projectCount)}`;
+                            projectEl.onclick = () => renderEventDetails(event, project);
+                            eventEl.appendChild(projectEl);
                         });
-                        yearEl.appendChild(monthEl);
+
+                        monthEl.appendChild(eventEl);
                     });
-                    categoryEl.appendChild(yearEl);
+                    yearEl.appendChild(monthEl);
                 });
-                navContainer.appendChild(categoryEl);
+                categoryEl.appendChild(yearEl);
             });
-            sidebar.appendChild(navContainer);
-        }
+            navContainer.appendChild(categoryEl);
+        });
+        sidebar.appendChild(navContainer);
+    }
 
-        function renderTrophy(count) {
-            if(count <= 0) return '';
-            const color = count >= 3 ? '#ffd700' : '#f1c40f';
-            return Array.from({length: count}, () => 
-                `<i class="fas fa-trophy" style="color:${color}; margin-left:8px;"></i>`
-            ).join('');
-        }
+    // 奖杯渲染函数（保持原有逻辑）
+    function renderTrophy(count) {
+        if(count <= 0) return '';
+        const color = count >= 3 ? '#ffd700' : '#f1c40f';
+        return Array.from({length: count}, () => 
+            `<i class="fas fa-trophy" style="color:${color}; margin-left:8px;"></i>`
+        ).join('');
+    }
 
-        function updatePath(event, project) {
-            const path = [];
-            if(event) {
-                path.push(
-                    `${event.year}年`,
-                    event.month,
-                    event.比赛名称,
-                    project
-                );
-            }
-            document.getElementById('pathNav').innerHTML = path.join(' &gt; ');
-        }
-
-        function navigateBack() {
-            if(currentIndex > 0) {
-                currentIndex--;
-                renderState(historyStack[currentIndex]);
-            }
-        }
-
-        function navigateForward() {
-            if(currentIndex < historyStack.length - 1) {
-                currentIndex++;
-                renderState(historyStack[currentIndex]);
-            }
-        }
-
-        function goHome() {
-            historyStack = [];
-            currentIndex = -1;
-            document.getElementById('content').innerHTML = '';
-            document.getElementById('pathNav').innerHTML = '';
-        }
-
-        function renderState(state) {
-            if (!state) return;
-            renderEventDetails(state.event, state.project);
-        }
-
+        // 搜索功能
+        let lastHighlight;
         function performSearch(keyword) {
-            const searchType = document.getElementById('searchType').value;
-            if(searchType === 'player') {
-                return handlePlayerSearch(keyword);
-            }
-            
+            const clean = () => lastHighlight?.classList.remove('search-highlight');
+            if(!keyword) return clean();
+
+            const results = [];
             const normalized = keyword.normalize('NFKC');
             const regex = new RegExp(normalized.replace(/./g, c => 
                 `[${c}${String.fromCharCode(c.charCodeAt(0)+0x60)}]`), 'i');
 
-            const results = [];
             Object.entries(fullData).forEach(([category, years]) => {
                 Object.entries(years).forEach(([year, months]) => {
                     Object.entries(months).forEach(([month, events]) => {
@@ -415,65 +342,27 @@ async function initialize() {
                 });
             });
 
+            clean();
             if(results.length) {
                 const selector = `[data-path='${JSON.stringify(results[0])}']`;
-                const target = document.querySelector(selector);
-                target?.scrollIntoView({behavior: 'smooth', block: 'center'});
+                lastHighlight = document.querySelector(selector);
+                lastHighlight?.classList.add('search-highlight');
+                lastHighlight?.scrollIntoView({behavior: 'smooth', block: 'center'});
             }
+            return results;
         }
 
-        function handlePlayerSearch(keyword) {
-            const matches = [];
-            Object.entries(fullData).forEach(([category, years]) => {
-                Object.entries(years).forEach(([year, months]) => {
-                    Object.entries(months).forEach(([month, events]) => {
-                        events.forEach(event => {
-                            Object.entries(event.项目).forEach(([project, rounds]) => {
-                                rounds.forEach(round => {
-                                    if(round.对手.includes(keyword)) {
-                                        matches.push({
-                                            ...round,
-                                            meta: {category, year, month, event}
-                                        });
-                                    }
-                                });
-                            });
-                        });
-                    });
-                });
-            });
+        // 事件监听
+        document.addEventListener('DOMContentLoaded', initialize); // 原buildNavigation改为initialize
+        document.getElementById('searchInput').addEventListener('input', e => 
+            performSearch(e.target.value.trim()));
+        document.querySelector('.search-icon').addEventListener('click', () => 
+            performSearch(document.getElementById('searchInput').value.trim()));
 
-            const winCount = matches.filter(m => m.结果 === '胜').length;
-            const contentHTML = `
-                <h2>对战记录：张本智和 VS ${keyword}</h2>
-                <div class="matchup-summary">
-                    <span class="total-score">总战绩：${winCount}胜 ${matches.length - winCount}负</span>
-                </div>
-                <ul class="match-list">
-                    ${matches.map(m => `
-                    <li class="match-item">
-                        <div class="round-info">
-                            <span class="score ${m.结果}">${m.meta.year} ${m.meta.event.比赛名称}</span>
-                            <span>${m.回战}：${m.对手}</span>
-                        </div>
-                        <span class="score ${m.结果}">${m.比分}</span>
-                        ${m.详情 ? `<small>${m.详情}</small>` : ''}
-                    </li>
-                    `).join('')}
-                </ul>
-                <div class="nav-buttons">
-                    <button onclick="navigateBack()"><i class="fas fa-arrow-left"></i> 返回</button>
-                    <button onclick="goHome()"><i class="fas fa-home"></i> 主页</button>
-                    <button onclick="navigateForward()"><i class="fas fa-arrow-right"></i> 前进</button>
-                </div>
-            `;
-            document.getElementById('content').innerHTML = contentHTML;
-        }
-
+        // 内容渲染
         function renderEventDetails(event, project) {
             const content = document.getElementById('content');
             content.innerHTML = `
-                <div class="path-nav" id="pathNav"></div>
                 <h2>${event.比赛名称} - ${project}</h2>
                 <div class="meta-info">
                     <p><i class="fas fa-calendar-day"></i> ${event.日期}</p>
@@ -492,20 +381,8 @@ async function initialize() {
                         </li>
                     `).join('')}
                 </ul>
-                <div class="nav-buttons">
-                    <button onclick="navigateBack()"><i class="fas fa-arrow-left"></i> 返回</button>
-                    <button onclick="goHome()"><i class="fas fa-home"></i> 主页</button>
-                    <button onclick="navigateForward()"><i class="fas fa-arrow-right"></i> 前进</button>
-                </div>
             `;
-            updatePath(event, project);
         }
-
-        document.addEventListener('DOMContentLoaded', buildNavigation);
-        document.getElementById('searchInput').addEventListener('input', e => 
-            performSearch(e.target.value.trim()));
-        document.querySelector('.search-icon').addEventListener('click', () => 
-            performSearch(document.getElementById('searchInput').value.trim()));
     </script>
 </body>
 </html>
