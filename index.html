@@ -211,27 +211,20 @@
 
     <script>
 
-        // 删除原fullData对象，改为异步加载
-        let fullData = {};
+let fullData = {}; // 空对象用于存放后续加载的数据
 
-        // 初始化函数
-        async function initialize() {
-            try {
-                const response = await fetch('data.json');
-                fullData = await response.json();
-                buildNavigation();
-            } catch (error) {
-                console.error('数据加载失败:', error);
-            }
-        }
+// 新增初始化函数
+async function initialize() {
+    try {
+        const response = await fetch('datajp.json');
+        fullData = await response.json();
+        buildNavigation();
+    } catch (error) {
+        console.error('数据加载失败:', error);
+        document.getElementById('content').innerHTML = '<p style="color:red">数据加载失败，请检查网络连接</p>';
+    }
+}
 
-    fetch('datajp.json')
-    .then(response => response.json())
-    .then(data => {
-      // 在这里使用 data 进行页面渲染
-      console.log(data);
-    })
-    .catch(error => console.error('加载数据失败:', error));
 
         // 冠军统计逻辑
         function countChampions(dataNode) {
@@ -360,7 +353,7 @@
         }
 
         // 事件监听
-        document.addEventListener('DOMContentLoaded', initialize);
+        document.addEventListener('DOMContentLoaded', initialize); // 原buildNavigation改为initialize
         document.getElementById('searchInput').addEventListener('input', e => 
             performSearch(e.target.value.trim()));
         document.querySelector('.search-icon').addEventListener('click', () => 
