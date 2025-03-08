@@ -8,11 +8,11 @@
         :root {
             --blue-50: #f0f9ff;
             --blue-100: #e0f2fe;
-            --blue-200: #bae6fd;
-            --blue-300: #7dd3fc;
-            --blue-400: #38bdf8;
-            --blue-500: #0ea5e9;
-            --blue-600: #0284c7;
+            --blue-200: #c8ebfd;
+            --blue-300: #afe6ff;
+            --blue-400: #6bd3ff;
+            --blue-500: #26abe9;
+            --blue-600: #1e8bc2;
             --blue-700: #0369a1;
             --blue-800: #075985;
             --blue-900: #0c4a6e;
@@ -20,6 +20,8 @@
             --sidebar-level1: var(--blue-50);
             --sidebar-level2: var(--blue-100);
             --sidebar-level3: var(--blue-200);
+            --sidebar-level4: var(--blue-300);
+            --sidebar-level5: var(--blue-400);
             --win-color: #27ae60;
             --lose-color: #e74c3c;
             --final-win: #f1c40f;
@@ -65,42 +67,77 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .path-nav {
+            color: var(--blue-700);
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: var(--blue-50);
+            border-radius: 8px;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--blue-500);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+
+        .nav-button:hover {
+            background: var(--blue-600);
+            transform: scale(1.1);
+        }
+
         /* 修复搜索框样式 */
         .search-box {
-            width: calc(100% - 30px);
+            display: flex;
+            align-items: center;
+            width: 100%;
             margin: 0 auto 20px;
             position: relative;
-            box-sizing: border-box;
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 10px 35px 10px 15px;
-            border: 2px solid var(--primary-color);
+            background: white;
             border-radius: 20px;
+            border: 2px solid var(--primary-color);
+        }
+        .search-filter {
+            padding: 0 15px;
+            height: 100%;
+            border: none;
+            background: transparent;
+            appearance: none;
             font-size: 14px;
-            transition: all 0.3s;
-            box-sizing: border-box;
+            border-right: 1px solid var(--blue-200);
+            outline: none;
         }
-
+        #searchInput {
+            flex: 1;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            background: transparent;
+            outline: none;
+        }
         .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--blue-500);
+            padding: 0 15px;
             cursor: pointer;
-        }
-
-        /* 层级颜色 */
-        details > summary {
-            background: var(--sidebar-level1);
-        }
-        details > details > summary {
-            background: var(--sidebar-level2);
-        }
-        details > details > details > summary {
-            background: var(--sidebar-level3);
         }
 
         details > summary {
@@ -127,6 +164,27 @@
 
         details[open] > summary::after {
             transform: rotate(180deg);
+        }
+
+        /* 修改选择器以应用正确的颜色 */
+        .sidebar .sidebar-level-1 summary {
+            background: var(--sidebar-level1);
+        }
+
+        .sidebar .sidebar-level-2 summary {
+            background: var(--sidebar-level2);
+        }
+
+        .sidebar .sidebar-level-3 summary {
+            background: var(--sidebar-level3);
+        }
+
+        .sidebar .sidebar-level-4 summary {
+            background: var(--sidebar-level4);
+        }
+
+        .sidebar .sidebar-level-5 summary {
+            background: var(--sidebar-level5);
         }
 
         .event-link {
@@ -179,6 +237,40 @@
             background: linear-gradient(90deg, transparent, var(--blue-100));
         }
 
+        .year-list, .month-list, .event-list {
+        display: grid;
+        gap: 12px;
+        padding: 15px;
+    }
+
+        .year-item, .month-item, .event-item {
+            padding: 12px;
+            background: var(--blue-50);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .year-item:hover, .month-item:hover, .event-item:hover {
+            background: var(--blue-100);
+            transform: translateX(5px);
+            border-left-color: var(--blue-400);
+        }
+
+        .language-switch {
+        margin-bottom: 10px;
+         }
+        .language-switch span {
+            cursor: pointer;
+            margin-right: 5px;
+            color: var(--blue-700);
+            font-weight: 600;
+        }
+        .language-switch span:hover {
+            text-decoration: underline;
+        }
+
         @keyframes highlight {
             0% { background-color: var(--final-win); }
             100% { background-color: transparent; }
@@ -189,121 +281,286 @@
             filter: drop-shadow(0 0 2px rgba(241, 196, 15, 0.5));
         }
 
-
     </style>
 </head>
 <body>
     <div class="header">
         <h1><i class="fas fa-table-tennis"></i> 张本智和赛事记录汇总</h1>
-        <p>①暂时更新至2025年的国内赛事，国外赛事不定期施工 ②搜索功能未上线，目前还是超绝未完成体</p>
+        <p>①国内赛事查漏补缺，国外赛事缓慢施工中 ②搜索功能未上线，目前还是超绝未完成体<br><br>如遇问题请在wb留言 @XX小狗记录册</p>
+    </div>
+
+    <div class="language-switch">
+        <span onclick="switchLanguage('cn')">CN</span>
+        <span onclick="switchLanguage('jp')">JP</span>
+        <span onclick="switchLanguage('en')">EN</span>
     </div>
 
     <div class="container">
         <div class="sidebar" id="sidebar">
             <div class="search-box">
+                <select id="searchType" class="search-filter">
+                    <option value="event">搜赛事</option>
+                    <option value="player">搜选手</option>
+                </select>
                 <input type="text" id="searchInput" placeholder="搜索比赛名称或对手...">
                 <i class="fas fa-search search-icon"></i>
                 <div class="search-results" id="searchResults"></div>
             </div>
         </div>
-        <div class="content" id="content"></div>
+        <div class="content" id="content">
+            <div class="path-nav" id="pathNav"></div>
+        </div>
+
     </div>
 
     <script>
 
 let fullData = {}; // 空对象用于存放后续加载的数据
+let currentLanguage = 'jp'; // 默认语言为日语
 
 // 新增初始化函数
-async function initialize() {
+async function initialize(lang) {
     try {
-        const response = await fetch('datajp.json');
+        const response = await fetch(`data${lang}.json`);
         fullData = await response.json();
         buildNavigation();
+        // 确保数据加载成功后再调用 renderData
+        renderData();
     } catch (error) {
         console.error('数据加载失败:', error);
         document.getElementById('content').innerHTML = '<p style="color:red">数据加载失败，请检查网络连接</p>';
     }
+    renderLevelContent(fullData, '所有赛事', 'category');
 }
 
+// 语言切换函数
+async function switchLanguage(lang) {
+    currentLanguage = lang;
+    await initialize(lang);
+    // 这里可以添加其他更新页面语言显示的逻辑，比如更新标题等
+    document.title = getTitleByLanguage(lang);
+}
 
-        // 冠军统计逻辑
-        function countChampions(dataNode) {
-            let count = 0;
-            if (Array.isArray(dataNode)) {
-                dataNode.forEach(event => {
-                    if(event.项目) Object.values(event.项目).forEach(rounds => {
-                        count += rounds.filter(r => r.决赛 && r.结果 === '胜').length
-                    });
+function updatePath(title) {
+    const pathNav = document.getElementById('pathNav');
+    pathNav.innerHTML += `${pathNav.innerHTML ? ' > ' : ''}${title}`;
+}
+
+function getTitleByLanguage(lang) {
+    switch (lang) {
+        case 'jp':
+            return '張本智和 試合記録まとめ';
+        case 'cn':
+            return '张本智和赛事记录汇总';
+        case 'en':
+            return 'Tomokazu Harimoto Match Records';
+        default:
+            return '张本智和赛事记录汇总';
+    }
+}
+
+let historyStack = [];
+let currentIndex = -1;
+let navHistory = [];
+let searchResults = [];
+    // 冠军统计逻辑
+    function countChampions(dataNode) {
+        let count = 0;
+        if (Array.isArray(dataNode)) {
+            dataNode.forEach(event => {
+                if(event.项目) Object.values(event.项目).forEach(rounds => {
+                    count += rounds.filter(r => r.决赛 && r.结果 === '胜').length
                 });
-            } else if (typeof dataNode === 'object') {
-                Object.values(dataNode).forEach(child => count += countChampions(child));
-            }
-            return count;
+            });
+        } else if (typeof dataNode === 'object') {
+            Object.values(dataNode).forEach(child => count += countChampions(child));
+        }
+        return count;
+    }
+    
+    function initNavigation() {
+            navHistory = [{ type: 'root', path: [] }];
+            currentNavIndex = 0;
+            updatePathDisplay();
         }
 
-    // 构建导航
-    function buildNavigation() {
-        const sidebar = document.getElementById('sidebar');
-        const searchBox = document.querySelector('.search-box').outerHTML;
-        sidebar.innerHTML = searchBox;
+        function navigateTo(node) {
+            navHistory = navHistory.slice(0, currentNavIndex + 1);
+            navHistory.push(node);
+            currentNavIndex++;
+            updatePathDisplay();
+            renderContent();
+        }
 
-        const navContainer = document.createElement('div');
-        Object.entries(fullData).forEach(([category, years]) => {
-            const categoryEl = document.createElement('details');
-            const categoryCount = countChampions(years);
-            categoryEl.innerHTML = `
-                <summary>
-                    ${category}（${categoryCount}）
-                </summary>
-            `;
+        function navigateBack() {
+            if (currentNavIndex > 0) {
+                currentNavIndex--;
+                updatePathDisplay();
+                renderContent();
+            }
+        }
 
-            Object.keys(years).sort().forEach(year => {
-                const yearEl = document.createElement('details');
-                const yearCount = countChampions(years[year]);
-                yearEl.innerHTML = `
-                    <summary>
-                        ${year}年（${yearCount}）
-                    </summary>
-                `;
+        function navigateForward() {
+            if (currentNavIndex < navHistory.length - 1) {
+                currentNavIndex++;
+                updatePathDisplay();
+                renderContent();
+            }
+        }
 
-                Object.entries(years[year]).forEach(([month, events]) => {
-                    const monthEl = document.createElement('details');
-                    const monthCount = countChampions(events);
-                    monthEl.innerHTML = `
-                        <summary>
-                            ${month}${renderTrophy(monthCount)}
-                        </summary>
-                    `;
+        function goHome() {
+            initNavigation();
+            renderContent();
+        }
 
-                    events.forEach(event => {
-                        const eventEl = document.createElement('details');
-                        const eventCount = countChampions([event]);
-                        // 修改比赛名称显示方式
-                        eventEl.innerHTML = `
-                            <summary>
-                                ${event.比赛名称}${renderTrophy(eventCount)}
-                            </summary>
-                        `;
-
-                        Object.entries(event.项目).forEach(([project, rounds]) => {
-                            const projectEl = document.createElement('a');
-                            projectEl.className = 'event-link';
-                            const projectCount = rounds.filter(r => r.决赛 && r.结果 === '胜').length;
-                            projectEl.innerHTML = `${project}${renderTrophy(projectCount)}`;
-                            projectEl.onclick = () => renderEventDetails(event, project);
-                            eventEl.appendChild(projectEl);
-                        });
-
-                        monthEl.appendChild(eventEl);
-                    });
-                    yearEl.appendChild(monthEl);
-                });
-                categoryEl.appendChild(yearEl);
+function renderLevelContent(data, title, levelType) {
+    const content = document.getElementById('content');
+    let html = `<div class="path-nav">当前位置：${title}</div>`;
+    
+    switch(levelType) {
+        case 'category':
+            html += `<h2>${title}赛事</h2>`;
+            html += `<div class="year-list">`;
+            Object.keys(data).forEach(year => {
+                html += `<div class="year-item" onclick="renderYear('${year}')">
+                    ${year}年（${countChampions(data[year])}）
+                </div>`;
             });
-            navContainer.appendChild(categoryEl);
-        });
-        sidebar.appendChild(navContainer);
+            html += `</div>`;
+            break;
+
+        case 'year':
+            html += `<h3>${title}年赛事</h3>`;
+            html += `<div class="month-list">`;
+            Object.keys(data).forEach(month => {
+                html += `<div class="month-item" onclick="renderMonth('${month}')">
+                    ${month}（${countChampions(data[month])}）
+                </div>`;
+            });
+            html += `</div>`;
+            break;
+
+        case 'month':
+            html += `<h4>${title}</h4>`;
+            html += `<div class="event-list">`;
+            data.forEach(event => {
+                html += `<div class="event-item">
+                    ${event.比赛名称}（${event.日期}）
+                </div>`;
+            });
+            html += `</div>`;
+            break;
     }
+
+    content.innerHTML = html;
+}
+
+    function addNavigationHandler(element, data, title, levelType) {
+    element.querySelector('summary').addEventListener('click', (e) => {
+        e.preventDefault();
+        renderLevelContent(data, title, levelType);
+        updatePath(title);
+    });
+}
+
+// 构建导航
+function buildNavigation() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.innerHTML = document.querySelector('.search-box').outerHTML;
+    const navContainer = document.createElement('div');
+
+    Object.entries(fullData).forEach(([category, years]) => {
+        const categoryEl = document.createElement('details');
+        categoryEl.classList.add('sidebar-level-1');
+        categoryEl.innerHTML = `<summary>${category}（${countChampions(years)}）</summary>`;
+
+        const categoryContent = document.createElement('div');
+        Object.entries(years).forEach(([year, months]) => {
+            const yearEl = document.createElement('details');
+            yearEl.classList.add('sidebar-level-2');
+            yearEl.innerHTML = `<summary>${year}年（${countChampions(months)}）</summary>`;
+
+            const yearContent = document.createElement('div');
+            Object.entries(months).forEach(([month, events]) => {
+                const monthEl = document.createElement('details');
+                monthEl.classList.add('sidebar-level-3');
+                monthEl.innerHTML = `<summary>${month}${renderTrophy(countChampions(events))}</summary>`;
+
+                const monthContent = document.createElement('div');
+                events.forEach(event => {
+                    const eventEl = document.createElement('details');
+                    eventEl.classList.add('sidebar-level-4');
+                    eventEl.innerHTML = `<summary>${event.比赛名称}${renderTrophy(countChampions([event]))}</summary>`;
+
+                    const eventContent = document.createElement('div');
+                    Object.entries(event.项目).forEach(([project, rounds]) => {
+                        const projectEl = document.createElement('a');
+                        projectEl.className = 'event-link';
+                        projectEl.innerHTML = `${project}${renderTrophy(rounds.filter(r => r.决赛 && r.结果 === '胜').length)}`;
+
+                        // 关键修改点：增强事件对象
+                        const clickHandler = () => {
+                            const enhancedEvent = {
+                                ...event,
+                                category: category,
+                                year: year,
+                                month: month
+                            };
+
+                            historyStack.splice(currentIndex + 1);
+                            historyStack.push({
+                                event: enhancedEvent,
+                                project: project,
+                                category: category,
+                                year: year,
+                                month: month
+                            });
+                            currentIndex++;
+                            renderEventDetails(enhancedEvent, project);
+                        };
+                        projectEl.onclick = clickHandler;
+
+                        eventContent.appendChild(projectEl);
+                    });
+                    eventEl.appendChild(eventContent);
+                    monthContent.appendChild(eventEl);
+                });
+                monthEl.appendChild(monthContent);
+                yearContent.appendChild(monthEl);
+            });
+            yearEl.appendChild(yearContent);
+            categoryContent.appendChild(yearEl);
+        });
+        categoryEl.appendChild(categoryContent);
+        navContainer.appendChild(categoryEl);
+
+        // 为 1 - 4 级的 summary 元素添加点击事件监听器
+        const summaries = categoryEl.querySelectorAll('.sidebar-level-1 summary, .sidebar-level-2 summary, .sidebar-level-3 summary, .sidebar-level-4 summary');
+        summaries.forEach(summary => {
+            summary.addEventListener('click', function () {
+                const details = this.parentElement;
+                const content = details.querySelector('div');
+                if (content) {
+                    const contentClone = content.cloneNode(true);
+                    const contentArea = document.getElementById('content');
+                    contentArea.innerHTML = '';
+                    contentArea.appendChild(contentClone);
+
+                    // 重新为右侧的比赛项目链接绑定点击事件
+                    const originalLinks = content.querySelectorAll('.event-link');
+                    const clonedLinks = contentClone.querySelectorAll('.event-link');
+                    clonedLinks.forEach((clonedLink, index) => {
+                        const originalLink = originalLinks[index];
+                        if (originalLink) {
+                            clonedLink.onclick = originalLink.onclick;
+                        }
+                    });
+                }
+            });
+        });
+    });
+    sidebar.appendChild(navContainer);
+}
 
     // 奖杯渲染函数（保持原有逻辑）
     function renderTrophy(count) {
@@ -314,43 +571,187 @@ async function initialize() {
         ).join('');
     }
 
-        // 搜索功能
-        let lastHighlight;
-        function performSearch(keyword) {
-            const clean = () => lastHighlight?.classList.remove('search-highlight');
-            if(!keyword) return clean();
+    function updatePath(event, project) {
+    const path = [];
+    if(event) {
+        path.push(
+            event.category,
+            `${event.year}年`,
+            event.month,
+            event.比赛名称,
+            project
+        );
+    }
+    document.getElementById('pathNav').innerHTML = path.join(' &gt; ');
+}
 
-            const results = [];
-            const normalized = keyword.normalize('NFKC');
-            const regex = new RegExp(normalized.replace(/./g, c => 
-                `[${c}${String.fromCharCode(c.charCodeAt(0)+0x60)}]`), 'i');
+        function navigateBack() {
+            if(currentIndex > 0) {
+                currentIndex--;
+                renderState(historyStack[currentIndex]);
+            }
+        }
+
+        function navigateForward() {
+            if(currentIndex < historyStack.length - 1) {
+                currentIndex++;
+                renderState(historyStack[currentIndex]);
+            }
+        }
+
+        function goHome() {
+            historyStack = [];
+            currentIndex = -1;
+            document.getElementById('content').innerHTML = '';
+            document.getElementById('pathNav').innerHTML = '';
+        }
+
+        function renderState(state) {
+            if (!state) return;
+            renderEventDetails(state.event, state.project);
+        }
+
+        function renderData() {
+      const container = document.getElementById('contentDetails');
+      let html = '';
+
+      for (let region in fullData) {
+        html += `<h2>${region}</h2>`;
+        let regionData = fullData[region];
+        for (let year in regionData) {
+          html += `<h3>${year}年</h3>`;
+          let yearData = regionData[year];
+          for (let month in yearData) {
+            html += `<h4>${month}</h4>`;
+            let matches = yearData[month];
+            matches.forEach(match => {
+              html += `<div class="match-item">`;
+              html += `<h5>${match["比赛名称"]}</h5>`;
+              html += `<p>日期：${match["日期"]} <br>地点：${match["地点"]}</p>`;
+              // 遍历各个项目
+              html += `<ul>`;
+              for (let event in match["项目"]) {
+                html += `<li><strong>${event}：</strong>`;
+                let rounds = match["项目"][event];
+                rounds.forEach(r => {
+                  html += `<div>${r["回战"]} - 对手：${r["对手"]} - 比分：${r["比分"]} - 结果：<span style="color:${r["结果"]==="胜"? "var(--win-color)" : "var(--lose-color)"};">${r["结果"]}</span></div>`;
+                });
+                html += `</li>`;
+              }
+              html += `</ul>`;
+              html += `</div>`;
+            });
+          }
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function renderContent(state) {
+            const content = document.getElementById('content');
+            let html = `<div class="path-nav">${state.title}</div>`;
+            
+            // 根据层级渲染不同内容
+            switch(state.level) {
+                case 0: // 分类
+                    html += `<h2>${state.title}赛事</h2>`;
+                    html += `<p>包含 ${Object.keys(state.data).length} 个赛季</p>`;
+                    break;
+                case 1: // 年份
+                    html += `<h3>${state.title}年赛事</h3>`;
+                    html += `<p>包含 ${Object.keys(state.data).length} 个月份</p>`;
+                    break;
+                case 2: // 月份
+                    html += `<h4>${state.title}</h4>`;
+                    html += `<p>包含 ${state.data.length} 项赛事</p>`;
+                    break;
+                case 3: // 赛事
+                    html += `<h4>${state.title}</h4>`;
+                    html += `<p>日期：${state.data.日期}</p>`;
+                    break;
+            }
+            
+            content.innerHTML = html;
+            updatePathNav(state);
+        }
+
+        // 搜索功能
+        function performSearch() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            const searchType = document.getElementById('searchType').value;
+            searchResults = [];
 
             Object.entries(fullData).forEach(([category, years]) => {
                 Object.entries(years).forEach(([year, months]) => {
                     Object.entries(months).forEach(([month, events]) => {
                         events.forEach((event, eventIndex) => {
                             let match = false;
-                            if(regex.test(event.比赛名称.normalize('NFKC'))) match = true;
-                            Object.values(event.项目).forEach(rounds => {
-                                rounds.forEach(round => {
-                                    if(regex.test(round.对手?.normalize('NFKC'))) match = true;
+                            
+                            if (searchType === 'event') {
+                                if (event.比赛名称.includes(keyword)) {
+                                    match = true;
+                                }
+                            } else {
+                                Object.values(event.项目).forEach(rounds => {
+                                    if (rounds.some(r => r.对手.includes(keyword))) {
+                                        match = true;
+                                    }
                                 });
-                            });
-                            if(match) results.push({category, year, month, eventIndex});
-                        });
-                    });
-                });
-            });
+                            }
 
-            clean();
-            if(results.length) {
-                const selector = `[data-path='${JSON.stringify(results[0])}']`;
-                lastHighlight = document.querySelector(selector);
-                lastHighlight?.classList.add('search-highlight');
-                lastHighlight?.scrollIntoView({behavior: 'smooth', block: 'center'});
-            }
-            return results;
+                            if (match) {
+                                searchResults.push({
+                                    category,
+                                    year,
+                                    month,
+                                    eventIndex,
+                                    event
+                                });
+                            }
+                        })
+                    })    
+                })            
+            })           
+        }                   
+
+            const resultsEl = document.getElementById('searchResults');
+            resultsEl.innerHTML = searchResults.map((result, index) => `
+                <div class="result-item" onclick="handleSearchResultClick(${index})">
+                    ${searchType === 'event' ? 
+                        result.event.比赛名称 : 
+                        `${result.event.比赛名称} - ${result.event.项目.男子シングルス[0]?.对手 || '未知对手'}`
+                    }
+                </div>
+            `).join('');
+            resultsEl.style.display = searchResults.length ? 'block' : 'none';
+        
+
+        function handleSearchResultClick(index) {
+            const result = searchResults[index];
+            navigateTo({
+                type: 'event',
+                path: [
+                    result.category,
+                    `${result.year}年`,
+                    result.month,
+                    result.event.比赛名称
+                ],
+                event: result.event
+            });
+            document.getElementById('searchResults').style.display = 'none';
         }
+
+        window.onload = function() {
+      initialize(currentLanguage);
+      renderData();
+    };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+            document.getElementById('searchInput').addEventListener('input', performSearch);
+            document.querySelector('.search-icon').addEventListener('click', performSearch);
+        });
 
         // 事件监听
         document.addEventListener('DOMContentLoaded', initialize); // 原buildNavigation改为initialize
@@ -359,10 +760,10 @@ async function initialize() {
         document.querySelector('.search-icon').addEventListener('click', () => 
             performSearch(document.getElementById('searchInput').value.trim()));
 
-        // 内容渲染
-        function renderEventDetails(event, project) {
+            function renderEventDetails(event, project) {
             const content = document.getElementById('content');
             content.innerHTML = `
+                <div class="path-nav" id="pathNav"></div>
                 <h2>${event.比赛名称} - ${project}</h2>
                 <div class="meta-info">
                     <p><i class="fas fa-calendar-day"></i> ${event.日期}</p>
@@ -381,8 +782,20 @@ async function initialize() {
                         </li>
                     `).join('')}
                 </ul>
+                <div class="nav-buttons">
+                    <button onclick="navigateBack()"><i class="fas fa-arrow-left"></i> 返回</button>
+                    <button onclick="goHome()"><i class="fas fa-home"></i> 主页</button>
+                    <button onclick="navigateForward()"><i class="fas fa-arrow-right"></i> 前进</button>
+                </div>
             `;
+            updatePath(event, project);
         }
+
+        document.addEventListener('DOMContentLoaded', buildNavigation);
+        document.getElementById('searchInput').addEventListener('input', e => 
+            performSearch(e.target.value.trim()));
+        document.querySelector('.search-icon').addEventListener('click', () => 
+            performSearch(document.getElementById('searchInput').value.trim()));
     </script>
 </body>
 </html>
