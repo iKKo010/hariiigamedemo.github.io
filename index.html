@@ -549,6 +549,16 @@
             summary.innerHTML = title;
             summary.onclick = onClick;
             details.appendChild(summary);
+
+                    // 为一级菜单添加自动关闭逻辑
+            if (level === 1) {
+                details.addEventListener('toggle', function() {
+                    if (!this.open) {
+                        closeAllChildDetails(this);
+                        setTimeout(checkFirstLevelStatus, 10); // 延迟确保DOM更新
+                    }
+                });
+            }
             return details;
         }
     }
@@ -875,6 +885,23 @@
             appState.currentIndex = index;
             updateContent(appState.historyStack[index]);
             updatePath();
+        }
+    }
+
+    // 在原有代码基础上新增以下两个函数
+    function closeAllChildDetails(parentElement) {
+        const childDetails = parentElement.querySelectorAll('details');
+        childDetails.forEach(detail => {
+            detail.open = false;
+            closeAllChildDetails(detail); // 递归关闭子菜单
+        });
+    }
+
+    function checkFirstLevelStatus() {
+        const firstLevelItems = document.querySelectorAll('.sidebar-level-1');
+        const allClosed = Array.from(firstLevelItems).every(item => !item.open);
+        if (allClosed && appState.currentIndex > 0) {
+            goBackTo(0);
         }
     }
 
