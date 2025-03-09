@@ -77,6 +77,28 @@
             font-weight: 600;
         }
 
+
+        .nav-controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+            margin: -5px -5px -10px 20px;
+        }
+
+        .nav-controls button {
+            padding: 8px 12px;
+            border: 1px solid var(--blue-200);
+            border-radius: 6px;
+            background: var(--blue-50);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-controls button:hover {
+            background: var(--blue-100);
+            transform: translateY(-1px);
+        }
+
         .language-switch {
             padding: 12px 15px 8px;
             margin: -5px -5px 10px -5px;
@@ -202,9 +224,12 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             margin-top: 8px;
             z-index: 100;
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
             display: none;
+            border: 1px solid var(--blue-200);
+            scrollbar-width: thin;
+            scrollbar-color: var(--blue-400) var(--blue-100);
         }
 
         .search-results.show {
@@ -221,6 +246,50 @@
         .search-results .result-item:hover {
             background: var(--blue-50);
             color: var(--blue-900);
+        }
+
+        .search-results::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .search-results::-webkit-scrollbar-track {
+            background: var(--blue-100);
+            border-radius: 4px;
+        }
+
+        .search-results::-webkit-scrollbar-thumb {
+            background: var(--blue-400);
+            border-radius: 4px;
+        }
+
+        .search-result-header {
+            padding: 12px 20px;
+            background: var(--blue-50);
+            color: var(--blue-700);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .result-item.match-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+        }
+
+        .match-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            color: var(--blue-500);
+        }
+
+        .result-highlight {
+            color: var(--blue-700);
+            font-weight: 600;
+            background: var(--blue-100);
+            padding: 0 2px;
+            border-radius: 2px;
         }
 
         .welcome-message {
@@ -412,15 +481,19 @@
         <h1><i class="fas fa-table-tennis"></i> 张本智和赛事记录汇总</h1>
         <p>①国内赛事查漏补缺，国外赛事缓慢施工中 ②搜索功能未上线，目前还是超绝未完成体<br><br>如遇问题请在wb留言 @XX小狗记录册</p>
     </div>
-
     <div class="container">
         <div class="sidebar" id="sidebar">
+            
             <div class="language-switch">
                 <span class="lang-item" onclick="switchLanguage('cn')">中文</span>
                 <span class="lang-separator">/</span>
                 <span class="lang-item" onclick="switchLanguage('en')">English</span>
                 <span class="lang-separator">/</span>
                 <span class="lang-item" onclick="switchLanguage('jp')">日本語</span>
+                <div class="nav-controls">
+                    <button id="btnBack" onclick="navigateHistory(-1)"><i class="fas fa-arrow-left"></i></button>
+                    <button id="btnForward" onclick="navigateHistory(1)"><i class="fas fa-arrow-right"></i></button>
+                </div>
             </div>
             <div class="search-box">
                 <select id="searchType" class="search-filter">
@@ -448,7 +521,13 @@
         navigationPath: [],
         currentLang: 'jp',
         historyStack: [],
-        currentIndex: -1
+        currentIndex: -1,
+        search: {  // 新增搜索状态
+            eventCache: [],    
+            playerCache: [],   
+            currentResults: [],
+            activeQuery: "" // 新增当前搜索词状态
+        }
     };
 
     // 修改后的初始化函数
@@ -474,6 +553,8 @@
         appState.currentIndex = 0;
         
         buildNavigation();
+        // 新增：构建搜索缓存
+        buildSearchCache(appState.currentData);
         updateContent({}); // 强制显示欢迎信息
         updatePath();
         document.title = getTitle(lang);
@@ -846,25 +927,66 @@
         </div>
     `;
 }
-    // 修改后的更新路径函数
+
+    // 增强版updatePath函数
     function updatePath() {
-        const path = appState.historyStack[appState.currentIndex] 
-            ? Object.values(appState.historyStack[appState.currentIndex]).filter(Boolean) 
-            : [];
-        
-        // 添加首页项并生成路径
-        const pathItems = [
-            `<span class="path-item ${appState.currentIndex === 0 ? 'active' : ''}" 
-              onclick="${appState.currentIndex !== 0 ? 'goBackTo(0)' : ''}">
-              ${getHomeText()}
-            </span>`,
-            ...path.map((item, index) => 
-                `<span class="path-item ${index === path.length - 1 ? 'active' : ''}" 
-                  onclick="${index !== path.length - 1 ? `goBackTo(${index + 1})` : ''}">
-                  ${item}
+        const currentState = appState.historyStack[appState.currentIndex];
+        const pathItems = [];
+
+        // 构建完整导航链路
+        const navigationChain = [];
+        for (let i = 0; i <= appState.currentIndex; i++) {
+            const state = appState.historyStack[i];
+            if (state.category) navigationChain.push({
+                type: 'category',
+                value: state.category
+            });
+            if (state.year) navigationChain.push({
+                type: 'year',
+                value: state.year
+            });
+            if (state.month) navigationChain.push({
+                type: 'month',
+                value: state.month
+            });
+            if (state.event) navigationChain.push({
+                type: 'event',
+                value: state.event
+            });
+            if (state.project) navigationChain.push({
+                type: 'project',
+                value: state.project
+            });
+        }
+
+        // 去重并保留最后出现的属性
+        const validPath = [];
+        const seen = new Set();
+        for (let i = navigationChain.length - 1; i >= 0; i--) {
+            const key = navigationChain[i].type;
+            if (!seen.has(key)) {
+                seen.add(key);
+                validPath.unshift(navigationChain[i]);
+            }
+        }
+
+        // 始终添加首页项
+        pathItems.push(
+            `<span class="path-item" onclick="goBackTo(0)">${getHomeText()}</span>`
+        );
+
+        // 构建可点击路径
+        validPath.forEach((item, index) => {
+            const targetIndex = findStateIndex(item);
+            const isLast = index === validPath.length - 1;
+            
+            pathItems.push(
+                `<span class="path-item ${isLast ? 'active' : ''}" 
+                onclick="goBackTo(${targetIndex})">
+                ${formatPathItem(item)}
                 </span>`
-            )
-        ];
+            );
+        });
 
         document.getElementById('pathNav').innerHTML = pathItems.join(' &gt; ');
     }
@@ -879,13 +1001,62 @@
         return texts[appState.currentLang] || 'Home';
     }
 
-    // 返回指定路径层级
+    // 新增多语言搜索标题
+    function getSearchResultTitle() {
+        const titles = {
+            jp: `"${appState.search.activeQuery}" の検索結果`,
+            cn: `"${appState.search.activeQuery}" 的搜索结果`,
+            en: `Search results for "${appState.search.activeQuery}"`
+        };
+        return titles[appState.currentLang] || titles.cn;
+    }
+    
+    // 修改goBackTo函数
     function goBackTo(index) {
         if(index >= 0 && index < appState.historyStack.length) {
             appState.currentIndex = index;
-            updateContent(appState.historyStack[index]);
+            const targetState = appState.historyStack[index];
+            
+            // 清除后续历史
+            appState.historyStack = appState.historyStack.slice(0, index + 1);
+            
+            updateContent(targetState);
             updatePath();
         }
+    }
+
+    // 辅助函数：查找状态在历史堆栈中的位置
+    function findStateIndex(target) {
+        for (let i = appState.historyStack.length - 1; i >= 0; i--) {
+            const state = appState.historyStack[i];
+            if (state[target.type] === target.value) {
+                return i;
+            }
+        }
+        return appState.currentIndex;
+    }
+
+    // 辅助函数：格式化路径项
+    function formatPathItem(item) {
+        switch(item.type) {
+            case 'year': 
+                return `${item.value}年`;
+            case 'month':
+                return item.value;
+            case 'event':
+                return item.value;
+            case 'category':
+                return item.value;
+            default:
+                return item.value;
+        }
+    }
+
+    // 更新导航按钮状态
+    function updateNavButtons() {
+        document.getElementById('btnBack').disabled = appState.currentIndex === 0;
+        document.getElementById('btnForward').disabled = 
+            appState.currentIndex === appState.historyStack.length - 1;
     }
 
     // 在原有代码基础上新增以下两个函数
@@ -925,11 +1096,207 @@
         return titles[lang] || titles.cn;
     }
 
+    /* 搜索系统核心功能 */
+    function buildSearchCache(data) {
+        appState.search.eventCache = [];
+        Object.entries(data).forEach(([category, years]) => {
+            Object.entries(years).forEach(([year, months]) => {
+                Object.entries(months).forEach(([month, events]) => {
+                    events.forEach(event => {
+                        appState.search.eventCache.push({
+                            category,
+                            year,
+                            month,
+                            name: event.比赛名称,
+                            cn: event.比赛名称,
+                            jp: event.比赛名称JP || event.比赛名称,
+                            en: event.eventNameEN || event.比赛名称,
+                            date: event.日期,
+                            location: event.地点
+                        });
+                    });
+                });
+            });
+        });
+    }
+
+    const debounce = (func, delay) => {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    };
+
+    document.getElementById('searchInput').addEventListener('input', debounce(function(e) {
+        handleSearchInput(e.target.value);
+    }, 300));
+
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') executeSearch();
+    });
+
+    document.querySelector('.fa-search').addEventListener('click', executeSearch);
+
+    function handleSearchInput(query) {
+        const searchType = document.getElementById('searchType').value;
+        query = query.trim();
+        
+        if (searchType === 'event') {
+            showEventSuggestions(query);
+        }
+    }
+
+    function showEventSuggestions(query) {
+        const resultsEl = document.getElementById('searchResults');
+        if (!query) {
+            resultsEl.classList.remove('show');
+            return;
+        }
+
+        const results = appState.search.eventCache
+            .filter(event => matchEvent(event, query))
+            .slice(0, 8);
+
+        resultsEl.innerHTML = results.map(event => `
+            <div class="result-item match-item" 
+                onclick="navigateToEvent('${event.category}', '${event.year}', '${event.month}', '${event.name}')">
+                <i class="fas fa-table-tennis match-icon"></i>
+                <div>
+                    <div>${highlightMatch(event.name, query)}</div>
+                    <small style="color: var(--blue-500)">
+                        ${event.date} · ${event.location}
+                    </small>
+                </div>
+            </div>
+        `).join('');
+        
+        resultsEl.classList[results.length ? 'add' : 'remove']('show');
+    }
+
+    function matchEvent(event, query) {
+        const q = query.toLowerCase();
+        return [event.cn, event.jp, event.en].some(text => 
+            text.toLowerCase().includes(q)
+        );
+    }
+
+    function highlightMatch(text, query) {
+        const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+        return text.replace(regex, '<span class="result-highlight">$1</span>');
+    }
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // 修改executeSearch函数
+    function executeSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        const searchType = document.getElementById('searchType').value;
+        
+        if (searchType === 'event') {
+            appState.search.activeQuery = query;
+            const results = appState.search.eventCache
+                .filter(event => matchEvent(event, query));
+            appState.search.currentResults = results;
+
+            // 创建独立的搜索状态
+            const searchState = {
+                type: 'search',
+                query: query,
+                results: results
+            };
+            
+            // 作为独立状态压入堆栈
+            appState.historyStack = appState.historyStack.slice(0, appState.currentIndex + 1);
+            appState.historyStack.push(searchState);
+            appState.currentIndex++;
+
+            renderSearchResults(results);
+            updatePath();
+            document.getElementById('searchResults').classList.remove('show');
+        }
+    }
+
+    // 修改renderSearchResults函数
+    function renderSearchResults(results) {
+        const content = document.getElementById('contentDetails');
+        content.innerHTML = `
+            <h2>${getSearchResultTitle()} (${results.length}项)</h2>
+            <div class="card-container">
+                ${results.map(event => `
+                    <div class="content-card" 
+                        onclick="navigateToEvent('${event.category}', '${event.year}', '${event.month}', '${event.name}')">
+                        <h3>${event.name}</h3>
+                        <p>${event.date} @ ${event.location}</p>
+                        <small>${event.year}年${event.month} · ${event.category}</small>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    // 修改navigateToEvent函数
+    function navigateToEvent(category, year, month, name) {
+        // 创建完整的导航链路
+        const fullPathState = [
+            {}, // 首页
+            { category: category },
+            { category: category, year: year },
+            { category: category, year: year, month: month },
+            { category: category, year: year, month: month, event: name }
+        ];
+
+        // 清除旧状态，重建导航链路
+        appState.historyStack = fullPathState;
+        appState.currentIndex = fullPathState.length - 1;
+
+        updateContent(fullPathState[appState.currentIndex]);
+        updatePath();
+        document.getElementById('searchResults').classList.remove('show');
+        document.getElementById('searchInput').value = '';
+    }
+
+    // 历史导航控制
+    function navigateHistory(delta) {
+        const newIndex = appState.currentIndex + delta;
+        if (newIndex >= 0 && newIndex < appState.historyStack.length) {
+            appState.currentIndex = newIndex;
+            const state = appState.historyStack[newIndex];
+            
+            if (state.type === 'search') {
+                renderSearchResults(state.results);
+                document.getElementById('searchInput').value = state.query;
+            } else {
+                updateContent(state);
+            }
+            
+            updatePath();
+            updateNavButtons();
+        }
+    }
+
+    // 新版导航函数
+    function navigateToIndex(index) {
+        if (index >= 0 && index < appState.historyStack.length) {
+            appState.currentIndex = index;
+            updateContent(appState.historyStack[index]);
+            updatePath();
+        }
+    }
+    
     // 错误处理
     function showError(msg) {
         // 空实现或改为控制台输出
         console.error(msg);
     }
+
+    // 初始化时添加按钮状态监听
+    window.addEventListener('popstate', () => {
+        navigateHistory(0); // 同步浏览器历史
+        updateNavButtons();
+    });
 
     // 初始化加载
     window.onload = () => initialize('jp');
