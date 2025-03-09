@@ -77,7 +77,6 @@
             font-weight: 600;
         }
 
-
         .nav-controls {
             margin-bottom: 15px;
             display: flex;
@@ -481,9 +480,9 @@
         <h1><i class="fas fa-table-tennis"></i> 张本智和赛事记录汇总</h1>
         <p>①国内赛事查漏补缺，国外赛事缓慢施工中 ②搜索功能未上线，目前还是超绝未完成体<br><br>如遇问题请在wb留言 @XX小狗记录册</p>
     </div>
+
     <div class="container">
         <div class="sidebar" id="sidebar">
-            
             <div class="language-switch">
                 <span class="lang-item" onclick="switchLanguage('cn')">中文</span>
                 <span class="lang-separator">/</span>
@@ -928,65 +927,40 @@
     `;
 }
 
-    // 增强版updatePath函数
+    // 修改updatePath函数
     function updatePath() {
         const currentState = appState.historyStack[appState.currentIndex];
         const pathItems = [];
 
-        // 构建完整导航链路
-        const navigationChain = [];
-        for (let i = 0; i <= appState.currentIndex; i++) {
-            const state = appState.historyStack[i];
-            if (state.category) navigationChain.push({
-                type: 'category',
-                value: state.category
-            });
-            if (state.year) navigationChain.push({
-                type: 'year',
-                value: state.year
-            });
-            if (state.month) navigationChain.push({
-                type: 'month',
-                value: state.month
-            });
-            if (state.event) navigationChain.push({
-                type: 'event',
-                value: state.event
-            });
-            if (state.project) navigationChain.push({
-                type: 'project',
-                value: state.project
-            });
-        }
-
-        // 去重并保留最后出现的属性
-        const validPath = [];
-        const seen = new Set();
-        for (let i = navigationChain.length - 1; i >= 0; i--) {
-            const key = navigationChain[i].type;
-            if (!seen.has(key)) {
-                seen.add(key);
-                validPath.unshift(navigationChain[i]);
-            }
-        }
-
         // 始终添加首页项
         pathItems.push(
-            `<span class="path-item" onclick="goBackTo(0)">${getHomeText()}</span>`
+            `<span class="path-item ${appState.currentIndex === 0 ? 'active' : ''}" 
+            onclick="${appState.currentIndex !== 0 ? 'goBackTo(0)' : ''}">
+            ${getHomeText()}
+            </span>`
         );
 
-        // 构建可点击路径
-        validPath.forEach((item, index) => {
-            const targetIndex = findStateIndex(item);
-            const isLast = index === validPath.length - 1;
-            
+        // 处理搜索状态
+        if (currentState.type === 'search') {
             pathItems.push(
-                `<span class="path-item ${isLast ? 'active' : ''}" 
-                onclick="goBackTo(${targetIndex})">
-                ${formatPathItem(item)}
+                `<span class="path-item active">
+                搜索结果：${currentState.query}
                 </span>`
             );
-        });
+        }
+        // 处理正常导航路径
+        else {
+            const validPath = Object.values(currentState).filter(Boolean);
+            validPath.forEach((item, index) => {
+                const isLast = index === validPath.length - 1;
+                pathItems.push(
+                    `<span class="path-item ${isLast ? 'active' : ''}" 
+                    onclick="${!isLast ? `goBackTo(${index + 1})` : ''}">
+                    ${item}
+                    </span>`
+                );
+            });
+        }
 
         document.getElementById('pathNav').innerHTML = pathItems.join(' &gt; ');
     }
@@ -1015,48 +989,16 @@
     function goBackTo(index) {
         if(index >= 0 && index < appState.historyStack.length) {
             appState.currentIndex = index;
-            const targetState = appState.historyStack[index];
             
-            // 清除后续历史
-            appState.historyStack = appState.historyStack.slice(0, index + 1);
+            // 如果回退到搜索状态，重新渲染结果
+            const state = appState.historyStack[index];
+            if(state.type === 'search') {
+                renderSearchResults(state.results);
+            }
             
-            updateContent(targetState);
+            updateContent(appState.historyStack[index]);
             updatePath();
         }
-    }
-
-    // 辅助函数：查找状态在历史堆栈中的位置
-    function findStateIndex(target) {
-        for (let i = appState.historyStack.length - 1; i >= 0; i--) {
-            const state = appState.historyStack[i];
-            if (state[target.type] === target.value) {
-                return i;
-            }
-        }
-        return appState.currentIndex;
-    }
-
-    // 辅助函数：格式化路径项
-    function formatPathItem(item) {
-        switch(item.type) {
-            case 'year': 
-                return `${item.value}年`;
-            case 'month':
-                return item.value;
-            case 'event':
-                return item.value;
-            case 'category':
-                return item.value;
-            default:
-                return item.value;
-        }
-    }
-
-    // 更新导航按钮状态
-    function updateNavButtons() {
-        document.getElementById('btnBack').disabled = appState.currentIndex === 0;
-        document.getElementById('btnForward').disabled = 
-            appState.currentIndex === appState.historyStack.length - 1;
     }
 
     // 在原有代码基础上新增以下两个函数
@@ -1201,20 +1143,19 @@
                 .filter(event => matchEvent(event, query));
             appState.search.currentResults = results;
 
-            // 创建独立的搜索状态
+            // 将搜索状态加入历史堆栈
             const searchState = {
                 type: 'search',
                 query: query,
                 results: results
             };
             
-            // 作为独立状态压入堆栈
             appState.historyStack = appState.historyStack.slice(0, appState.currentIndex + 1);
             appState.historyStack.push(searchState);
             appState.currentIndex++;
 
             renderSearchResults(results);
-            updatePath();
+            updatePath(); // 更新路径
             document.getElementById('searchResults').classList.remove('show');
         }
     }
@@ -1237,27 +1178,12 @@
         `;
     }
 
-    // 修改navigateToEvent函数
+    // 导航到赛事的公共方法
     function navigateToEvent(category, year, month, name) {
-        // 创建完整的导航链路
-        const fullPathState = [
-            {}, // 首页
-            { category: category },
-            { category: category, year: year },
-            { category: category, year: year, month: month },
-            { category: category, year: year, month: month, event: name }
-        ];
-
-        // 清除旧状态，重建导航链路
-        appState.historyStack = fullPathState;
-        appState.currentIndex = fullPathState.length - 1;
-
-        updateContent(fullPathState[appState.currentIndex]);
-        updatePath();
+        navigateTo('event', name, category, year, month);
         document.getElementById('searchResults').classList.remove('show');
         document.getElementById('searchInput').value = '';
     }
-
     // 历史导航控制
     function navigateHistory(delta) {
         const newIndex = appState.currentIndex + delta;
@@ -1285,18 +1211,11 @@
             updatePath();
         }
     }
-    
     // 错误处理
     function showError(msg) {
         // 空实现或改为控制台输出
         console.error(msg);
     }
-
-    // 初始化时添加按钮状态监听
-    window.addEventListener('popstate', () => {
-        navigateHistory(0); // 同步浏览器历史
-        updateNavButtons();
-    });
 
     // 初始化加载
     window.onload = () => initialize('jp');
