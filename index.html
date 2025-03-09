@@ -645,6 +645,7 @@
 
     // 修复后的导航处理
     function navigateTo(type, value, ...context) {
+        // 原有参数处理逻辑保持不变
         let newState = { 
             category: null,
             year: null,
@@ -681,6 +682,7 @@
                 break;
         }
 
+        // 后续历史记录处理保持不变
         appState.historyStack = appState.historyStack.slice(0, appState.currentIndex + 1);
         appState.historyStack.push(newState);
         appState.currentIndex++;
@@ -932,7 +934,7 @@
         const currentState = appState.historyStack[appState.currentIndex];
         const pathItems = [];
 
-        // 始终添加首页项
+        // 首页项（保持不变）
         pathItems.push(
             `<span class="path-item ${appState.currentIndex === 0 ? 'active' : ''}" 
             onclick="${appState.currentIndex !== 0 ? 'goBackTo(0)' : ''}">
@@ -940,25 +942,37 @@
             </span>`
         );
 
-        // 处理搜索状态
+        // 搜索状态处理（新增逻辑）
         if (currentState.type === 'search') {
             pathItems.push(
                 `<span class="path-item active">
-                搜索结果：${currentState.query}
+                搜索：${currentState.query}
                 </span>`
             );
         }
-        // 处理正常导航路径
-        else {
-            const validPath = Object.values(currentState).filter(Boolean);
-            validPath.forEach((item, index) => {
-                const isLast = index === validPath.length - 1;
-                pathItems.push(
-                    `<span class="path-item ${isLast ? 'active' : ''}" 
-                    onclick="${!isLast ? `goBackTo(${index + 1})` : ''}">
-                    ${item}
-                    </span>`
-                );
+        // 正常导航路径（兼容原有逻辑）
+        else if (currentState.category) {
+            const hierarchy = [
+                { type: 'category', value: currentState.category },
+                { type: 'year', value: currentState.year },
+                { type: 'month', value: currentState.month },
+                { type: 'event', value: currentState.event },
+                { type: 'project', value: currentState.project }
+            ].filter(level => level.value);
+
+            hierarchy.forEach((level, index) => {
+                const isLast = index === hierarchy.length - 1;
+                const contextParams = hierarchy
+                    .slice(0, index)
+                    .map(l => `'${l.value}'`)
+                    .join(', ');
+
+                pathItems.push(`
+                    <span class="path-item ${isLast ? 'active' : ''}" 
+                        onclick="${!isLast ? `navigateTo('${level.type}', '${level.value}', ${contextParams})` : ''}">
+                        ${level.value}
+                    </span>
+                `);
             });
         }
 
@@ -1046,9 +1060,9 @@
                 Object.entries(months).forEach(([month, events]) => {
                     events.forEach(event => {
                         appState.search.eventCache.push({
-                            category,
-                            year,
-                            month,
+                            category,  // 新增分类
+                            year,      // 新增年份
+                            month,     // 新增月份
                             name: event.比赛名称,
                             cn: event.比赛名称,
                             jp: event.比赛名称JP || event.比赛名称,
@@ -1184,6 +1198,7 @@
         document.getElementById('searchResults').classList.remove('show');
         document.getElementById('searchInput').value = '';
     }
+
     // 历史导航控制
     function navigateHistory(delta) {
         const newIndex = appState.currentIndex + delta;
