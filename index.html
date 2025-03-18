@@ -547,120 +547,324 @@
         }
 
             /* 视频播放器容器 */
-    .custom-video-player {
-        width: 100%;
-        max-width: 800px;
-        margin: 20px auto;
-        background: #000;
-        border-radius: 8px;
-        overflow: hidden;
-        position: relative;
-    }
+        .custom-video-player {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
 
-    /* 视频主体 */
-    .video-main {
-        width: 100%;
-        height: 0;
-        padding-bottom: 56.25%; /* 16:9比例 */
-        position: relative;
-    }
+        /* 视频主体 */
+        .video-main {
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9比例 */
+            position: relative;
+        }
 
-    #customVideo {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
+        #customVideo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
 
-    /* 自定义控制条 */
-    .video-controls {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
+        /* 自定义控制条 */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
 
-    .custom-video-player:hover .video-controls {
-        opacity: 1;
-    }
+        .custom-video-player:hover .video-controls {
+            opacity: 1;
+        }
 
-    /* 进度条样式 */
-    .progress-container {
-        width: 100%;
-        height: 4px;
-        background: rgba(255,255,255,0.2);
-        cursor: pointer;
-    }
+        /* 进度条样式 */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+        }
 
-    .progress-bar {
-        height: 100%;
-        background: var(--blue-400);
-        width: 0;
-        transition: width 0.1s;
-    }
+        .progress-bar {
+            height: 100%;
+            background: var(--blue-400);
+            width: 0;
+            transition: width 0.1s;
+        }
 
-    /* 控制按钮组 */
-    .control-buttons {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
+        /* 控制按钮组 */
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    .left-controls, .right-controls {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-    .control-button {
-        color: white;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 18px;
-    }
+        .control-button {
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
 
-    .control-button:hover {
-        color: var(--blue-300);
-    }
+        .control-button:hover {
+            color: var(--blue-300);
+        }
 
-    /* 时间显示 */
-    .time-display {
-        color: white;
-        font-size: 0.9rem;
-        font-family: monospace;
-    }
+        /* 时间显示 */
+        .time-display {
+            color: white;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
 
-    /* 加载提示 */
-    .loading-indicator {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 1.2rem;
-    }
+        /* 加载提示 */
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            display: none; /* 默认隐藏 */
+        }
 
-    /* 错误提示 */
-    .video-error {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: #e74c3c;
-        text-align: center;
-        padding: 20px;
-        background: rgba(0,0,0,0.8);
-        border-radius: 8px;
-    }
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .loading-indicator i {
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 错误提示 */
+        .video-error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 8px;
+        }
+
+            /* 增强播放器样式 */
+            .custom-video-player {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* 视频主体增强 */
+        .video-main {
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            position: relative;
+            background: #000;
+        }
+
+        #customVideo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 增强控制条 */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .custom-video-player:hover .video-controls {
+            opacity: 1;
+        }
+
+        /* 增强进度条 */
+        .progress-container {
+            position: relative;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            margin: 8px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--blue-400);
+            position: relative;
+        }
+
+        /* 进度条滑块 */
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .progress-container:hover .progress-bar::after {
+            opacity: 1;
+        }
+
+        /* 暂停状态覆盖层 */
+        .pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pause-icon {
+            font-size: 48px;
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 增强控制按钮组 */
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+            /* 画质选择菜单 */
+            .quality-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 4px;
+            padding: 8px;
+            display: none;
+        }
+
+        .quality-item {
+            color: white;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .quality-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .control-button {
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 20px;
+            background: none !important;
+            padding: 8px !important;
+        }
+
+        .control-button:hover {
+            color: var(--blue-300);
+            transform: scale(1.1);
+        }
+
+        /* 增强时间显示 */
+        .time-display {
+            color: white;
+            font-size: 0.95rem;
+            font-family: monospace;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* 音量条样式 */
+        input[type="range"] {
+            width: 80px;
+            height: 4px;
+            accent-color: var(--blue-400);
+        }
+
+        /* 关闭按钮样式 */
+        .btn-close {
+            color: #fff;
+            background: none !important;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 10;
+        }
+
+        .btn-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
         
     </style>
 </head>
@@ -1409,6 +1613,10 @@
     // 视频点击处理
     function handleVideoClick(videoUrl) {
         showAuthModal(() => {
+            // 清除已有播放器
+            const existingPlayer = document.querySelector('.custom-video-player');
+            if(existingPlayer) existingPlayer.remove();
+
             // 创建播放器容器
             const playerHTML = `
                 <div class="custom-video-player">
@@ -1417,7 +1625,12 @@
                             <source src="${videoUrl}" type="video/mp4">
                             您的浏览器不支持视频播放
                         </video>
-                        <div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                        <div class="loading-indicator"><i class="fas fa-spinner"></i></div>
+                        <div class="pause-overlay"><i class="fas fa-pause pause-icon"></i></div>
+                        <div class="quality-menu">
+                            <div class="quality-item" data-quality="hd">高清</div>
+                            <div class="quality-item" data-quality="sd">标清</div>
+                        </div>
                     </div>
                     <div class="video-controls">
                         <div class="progress-container" onclick="handleProgressClick(event)">
@@ -1425,7 +1638,7 @@
                         </div>
                         <div class="control-buttons">
                             <div class="left-controls">
-                                <button class="control-button" onclick="togglePlay()">
+                                <button class="control-button" onclick="togglePlay()" id="playBtn">
                                     <i class="fas fa-play" id="playButton"></i>
                                 </button>
                                 <span class="time-display">
@@ -1434,6 +1647,9 @@
                                 </span>
                             </div>
                             <div class="right-controls">
+                                <button class="control-button" onclick="toggleQualityMenu()">
+                                    <i class="fas fa-cog"></i>
+                                </button>
                                 <button class="control-button" onclick="toggleMute()">
                                     <i class="fas fa-volume-up" id="volumeIcon"></i>
                                 </button>
@@ -1450,6 +1666,9 @@
                             </div>
                         </div>
                     </div>
+                    <button class="control-button btn-close" onclick="closeVideoPlayer()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             `;
             
@@ -1464,24 +1683,35 @@
             // 视频元数据加载
             video.addEventListener('loadedmetadata', () => {
                 document.getElementById('duration').textContent = formatTime(video.duration);
+                document.querySelector('.loading-indicator').style.display = 'none';
+                video.play().catch(() => {/* 自动播放被阻止处理 */});
             });
 
-            // 时间更新
-            video.addEventListener('timeupdate', () => {
-                if (!isSeeking) {
-                    document.getElementById('currentTime').textContent = formatTime(video.currentTime);
-                    document.getElementById('videoProgress').style.width = 
-                        (video.currentTime / video.duration * 100) + '%';
-                }
-            });
-
-            // 播放状态切换
+            // 播放状态处理
             video.addEventListener('play', () => {
                 document.getElementById('playButton').className = 'fas fa-pause';
+                document.querySelector('.loading-indicator').style.display = 'none';
+            });
+
+            video.addEventListener('waiting', () => {
+                document.querySelector('.loading-indicator').style.display = 'flex';
+            });
+
+            video.addEventListener('playing', () => {
+                document.querySelector('.loading-indicator').style.display = 'none';
             });
 
             video.addEventListener('pause', () => {
                 document.getElementById('playButton').className = 'fas fa-play';
+            });
+
+            // 进度更新
+            video.addEventListener('timeupdate', () => {
+                if (!isSeeking) {
+                    const progress = (video.currentTime / video.duration) * 100;
+                    document.getElementById('videoProgress').style.width = progress + '%';
+                    document.getElementById('currentTime').textContent = formatTime(video.currentTime);
+                }
             });
 
             // 错误处理
@@ -1505,8 +1735,8 @@
         });
     }
 
-        /* 播放器控制函数 */
-        function togglePlay() {
+    /* 播放器控制函数 */
+    function togglePlay() {
         const video = document.getElementById('customVideo');
         video.paused ? video.play() : video.pause();
     }
@@ -1528,6 +1758,21 @@
         }
     }
 
+    // 新增功能函数
+    function toggleQualityMenu() {
+        const menu = document.querySelector('.quality-menu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function closeVideoPlayer() {
+        const player = document.querySelector('.custom-video-player');
+        const video = document.getElementById('customVideo');
+        video.pause();
+        player.remove();
+        document.querySelectorAll('.video-icon').forEach(btn => btn.style.pointerEvents = 'auto');
+    }
+
+    // 优化后的进度条拖拽
     function handleProgressClick(e) {
         const video = document.getElementById('customVideo');
         const rect = e.target.getBoundingClientRect();
