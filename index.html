@@ -545,6 +545,122 @@
             font-size: 0.8em;
             margin-left: 4px;
         }
+
+            /* 视频播放器容器 */
+    .custom-video-player {
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* 视频主体 */
+    .video-main {
+        width: 100%;
+        height: 0;
+        padding-bottom: 56.25%; /* 16:9比例 */
+        position: relative;
+    }
+
+    #customVideo {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* 自定义控制条 */
+    .video-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .custom-video-player:hover .video-controls {
+        opacity: 1;
+    }
+
+    /* 进度条样式 */
+    .progress-container {
+        width: 100%;
+        height: 4px;
+        background: rgba(255,255,255,0.2);
+        cursor: pointer;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: var(--blue-400);
+        width: 0;
+        transition: width 0.1s;
+    }
+
+    /* 控制按钮组 */
+    .control-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .left-controls, .right-controls {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .control-button {
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 18px;
+    }
+
+    .control-button:hover {
+        color: var(--blue-300);
+    }
+
+    /* 时间显示 */
+    .time-display {
+        color: white;
+        font-size: 0.9rem;
+        font-family: monospace;
+    }
+
+    /* 加载提示 */
+    .loading-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    /* 错误提示 */
+    .video-error {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #e74c3c;
+        text-align: center;
+        padding: 20px;
+        background: rgba(0,0,0,0.8);
+        border-radius: 8px;
+    }
         
     </style>
 </head>
@@ -1291,24 +1407,149 @@
     }
 
     // 视频点击处理
-    function handleVideoClick(videoId) {
+    function handleVideoClick(videoUrl) {
         showAuthModal(() => {
-        const playerHTML = `
-        <div class="video-container">
-            <iframe 
-                src="https://kljjiajia-my.sharepoint.com/personal/zoek_kljjiajia_onmicrosoft_com/_layouts/15/embed.aspx?UniqueId=${videoId}" 
-                width="100%"
-                height="360"
-                frameborder="0"
-                scrolling="no"
-                allowfullscreen
-                class="video-frame"
-                title="比赛录像">
-            </iframe>
-        </div>
-        `;
-            document.getElementById('contentDetails').insertAdjacentHTML('beforeend', playerHTML);
+            // 创建播放器容器
+            const playerHTML = `
+                <div class="custom-video-player">
+                    <div class="video-main">
+                        <video id="customVideo">
+                            <source src="${videoUrl}" type="video/mp4">
+                            您的浏览器不支持视频播放
+                        </video>
+                        <div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                    </div>
+                    <div class="video-controls">
+                        <div class="progress-container" onclick="handleProgressClick(event)">
+                            <div class="progress-bar" id="videoProgress"></div>
+                        </div>
+                        <div class="control-buttons">
+                            <div class="left-controls">
+                                <button class="control-button" onclick="togglePlay()">
+                                    <i class="fas fa-play" id="playButton"></i>
+                                </button>
+                                <span class="time-display">
+                                    <span id="currentTime">00:00</span> / 
+                                    <span id="duration">00:00</span>
+                                </span>
+                            </div>
+                            <div class="right-controls">
+                                <button class="control-button" onclick="toggleMute()">
+                                    <i class="fas fa-volume-up" id="volumeIcon"></i>
+                                </button>
+                                <input type="range" 
+                                       id="volumeSlider" 
+                                       min="0" 
+                                       max="1" 
+                                       step="0.1" 
+                                       value="1"
+                                       oninput="updateVolume(this.value)">
+                                <button class="control-button" onclick="toggleFullscreen()">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const container = document.createElement('div');
+            container.innerHTML = playerHTML;
+            document.getElementById('contentDetails').appendChild(container);
+
+            // 初始化视频对象
+            const video = document.getElementById('customVideo');
+            let isSeeking = false;
+
+            // 视频元数据加载
+            video.addEventListener('loadedmetadata', () => {
+                document.getElementById('duration').textContent = formatTime(video.duration);
+            });
+
+            // 时间更新
+            video.addEventListener('timeupdate', () => {
+                if (!isSeeking) {
+                    document.getElementById('currentTime').textContent = formatTime(video.currentTime);
+                    document.getElementById('videoProgress').style.width = 
+                        (video.currentTime / video.duration * 100) + '%';
+                }
+            });
+
+            // 播放状态切换
+            video.addEventListener('play', () => {
+                document.getElementById('playButton').className = 'fas fa-pause';
+            });
+
+            video.addEventListener('pause', () => {
+                document.getElementById('playButton').className = 'fas fa-play';
+            });
+
+            // 错误处理
+            video.addEventListener('error', () => {
+                const errorHTML = `
+                    <div class="video-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>视频加载失败，请检查网络连接</p>
+                        <button onclick="this.parentElement.remove()" 
+                                style="margin-top:10px; padding:5px 10px;">
+                            关闭
+                        </button>
+                    </div>
+                `;
+                video.insertAdjacentHTML('afterend', errorHTML);
+            });
+
+            // 开始加载视频
+            video.load();
+            video.play().catch(error => console.log('自动播放被阻止:', error));
         });
+    }
+
+        /* 播放器控制函数 */
+        function togglePlay() {
+        const video = document.getElementById('customVideo');
+        video.paused ? video.play() : video.pause();
+    }
+
+    function toggleMute() {
+        const video = document.getElementById('customVideo');
+        video.muted = !video.muted;
+        document.getElementById('volumeIcon').className = 
+            video.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+    }
+
+    function updateVolume(value) {
+        const video = document.getElementById('customVideo');
+        video.volume = value;
+        if (value == 0) {
+            document.getElementById('volumeIcon').className = 'fas fa-volume-mute';
+        } else {
+            document.getElementById('volumeIcon').className = 'fas fa-volume-up';
+        }
+    }
+
+    function handleProgressClick(e) {
+        const video = document.getElementById('customVideo');
+        const rect = e.target.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        video.currentTime = pos * video.duration;
+    }
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remaining = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(remaining).padStart(2, '0')}`;
+    }
+
+    function toggleFullscreen() {
+        const player = document.querySelector('.custom-video-player');
+        if (!document.fullscreenElement) {
+            player.requestFullscreen().catch(err => {
+                alert(`全屏请求失败: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
     }
 
     // 身份验证系统
