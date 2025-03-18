@@ -291,6 +291,79 @@
             border-radius: 2px;
         }
 
+        /* 视频相关样式 */
+        .video-icon {
+            color: var(--blue-500);
+            cursor: pointer;
+            margin-left: 12px;
+            transition: all 0.2s;
+        }
+
+        .video-icon:hover {
+            color: var(--blue-700);
+            transform: scale(1.1);
+        }
+
+        /* 新增到原有样式表 */
+        .video-frame {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: var(--blue-50);
+        }
+
+        .video-container {
+            margin: 1.5rem 0;
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9比例 */
+            height: 0;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 验证模态框 */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--blue-200);
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        /* 视频容器 */
+        .video-container {
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
         .welcome-message {
             text-align: center;
             padding: 2rem;
@@ -514,11 +587,23 @@
         </div>
     </div>
 
+    <div class="auth-modal" id="authModal">
+        <div class="modal-content">
+            <h3>视频身份验证</h3>
+            <input type="password" class="auth-input" id="authCode" placeholder="请输入访问密码">
+            <p class="text-hint" style="color:var(--blue-600);font-size:0.9rem">请联系管理员获取观看密码</p>
+            <div class="nav-controls">
+                <button onclick="handleAuth()">验证</button>
+                <button onclick="closeAuthModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
 <script>
     let appState = {
         currentData: {},
         navigationPath: [],
-        currentLang: 'jp',
+        currentLang: 'cn',
         historyStack: [],
         currentIndex: -1,
         search: {  // 新增搜索状态
@@ -526,6 +611,10 @@
             playerCache: [],   
             currentResults: [],
             activeQuery: "" // 新增当前搜索词状态
+        },
+        auth: {
+        validCodes: new Set(["123456", "654321" /* 填入50个有效密码 */]),
+        currentVideoUrl: null
         }
     };
 
@@ -696,7 +785,7 @@
         const content = document.getElementById('contentDetails');
 
         // 当没有有效数据时显示欢迎信息
-        if (Object.keys(appState.currentData).length === 0) {
+        if (appState.currentIndex === 0) {  // 当处于历史栈第一个位置（首页）
             content.innerHTML = `
                 <div class="welcome-message">
                     <h2>${getWelcomeTitle()}</h2>
@@ -724,25 +813,6 @@
                 </div>
             `;
         }
-    }
-
-    // 新增多语言欢迎信息
-    function getWelcomeTitle() {
-        const titles = {
-            jp: '試合記録システムへようこそ',
-            cn: '欢迎使用赛事记录系统',
-            en: 'Welcome to Match Records System'
-        };
-        return titles[appState.currentLang] || titles.cn;
-    }
-
-    function getWelcomeText() {
-        const texts = {
-            jp: '左側のナビゲーションから詳細記録を選択してください',
-            cn: '请从左侧导航选择查看详细赛事记录',
-            en: 'Please select from the left navigation to view details'
-        };
-        return texts[appState.currentLang] || texts.cn;
     }
 
     // 奖杯渲染函数
@@ -920,6 +990,7 @@
                         <div class="round-details">
                             <span class="score">${round.比分}</span>
                             ${round.决赛 ? '<i class="fas fa-trophy icon-trophy"></i>' : ''}
+                            ${showVideoButton(round)} <!-- 新增视频按钮 -->
                         </div>
                         ${round.详情 ? `<p class="round-note">${round.详情}</p>` : ''}
                     </div>
@@ -987,6 +1058,25 @@
             en: 'Home'
         };
         return texts[appState.currentLang] || 'Home';
+    }
+    
+    // 新增多语言欢迎信息
+    function getWelcomeTitle() {
+        const titles = {
+            jp: '試合記録システムへようこそ',
+            cn: '欢迎使用赛事记录系统',
+            en: 'Welcome to Match Records System'
+        };
+        return titles[appState.currentLang] || titles.cn;
+    }
+
+    function getWelcomeText() {
+        const texts = {
+            jp: '左側のナビゲーションから詳細記録を選択してください',
+            cn: '请从左侧导航选择查看详细赛事记录',
+            en: 'Please select from the left navigation to view details'
+        };
+        return texts[appState.currentLang] || texts.cn;
     }
 
     // 新增多语言搜索标题
@@ -1192,6 +1282,70 @@
         `;
     }
 
+    // 视频处理函数
+    function showVideoButton(round) {
+        if (!round.video) return '';
+        return `<i class="fas fa-video video-icon" 
+                onclick="handleVideoClick('${round.video}')"
+                title="观看比赛视频"></i>`;
+    }
+
+    // 视频点击处理
+    function handleVideoClick(videoId) {
+        showAuthModal(() => {
+        const playerHTML = `
+        <div class="video-container">
+            <iframe 
+                src="https://kljjiajia-my.sharepoint.com/personal/zoek_kljjiajia_onmicrosoft_com/_layouts/15/embed.aspx?UniqueId=${videoId}" 
+                width="100%"
+                height="360"
+                frameborder="0"
+                scrolling="no"
+                allowfullscreen
+                class="video-frame"
+                title="比赛录像">
+            </iframe>
+        </div>
+        `;
+            document.getElementById('contentDetails').insertAdjacentHTML('beforeend', playerHTML);
+        });
+    }
+
+    // 身份验证系统
+    function showAuthModal(successCallback) {
+        const modal = document.getElementById('authModal');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            modal.querySelector('.modal-content').style.transform = 'scale(1)';
+        }, 10);
+        modal._callback = successCallback;
+    }
+
+    function closeAuthModal() {
+        const modal = document.getElementById('authModal');
+        modal.querySelector('.modal-content').style.transform = 'scale(0.9)';
+        modal.style.backgroundColor = 'rgba(0,0,0,0)';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 200);
+    }
+
+    function handleAuth() {
+        const modal = document.getElementById('authModal');
+        const inputCode = document.getElementById('authCode').value.trim();
+        
+        if (appState.auth.validCodes.has(inputCode)) {
+            closeAuthModal();
+            if (typeof modal._callback === 'function') {
+                modal._callback();
+            }
+        } else {
+            alert("验证码错误，请重新输入");
+            document.getElementById('authCode').value = '';
+        }
+    }
+
     // 导航到赛事的公共方法
     function navigateToEvent(category, year, month, name) {
         navigateTo('event', name, category, year, month);
@@ -1233,7 +1387,7 @@
     }
 
     // 初始化加载
-    window.onload = () => initialize('jp');
+    window.onload = () => initialize('cn');
 </script>
 </body>
 </html>
