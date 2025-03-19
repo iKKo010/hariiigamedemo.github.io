@@ -1,26 +1,37 @@
-// api/auth/verify.js
-import sha256 from 'js-sha256';
+export default async function handler(req, res) {
+  // 允许CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-// 从环境变量中读取有效密码哈希值
-const validCodes = new Set(process.env.VALID_CODES.split(','));
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-export default function handler(req, res) {
-    if (req.method === 'POST') {
-        try {
-            const { inputCode } = req.body;
-            // 对输入的密码进行哈希处理
-            const hashedInput = sha256(inputCode);
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-            if (validCodes.has(hashedInput)) {
-                res.status(200).json({ success: true });
-            } else {
-                res.status(401).json({ success: false, message: '验证码错误，请重新输入' });
-            }
-        } catch (error) {
-            console.error('验证过程中出现错误:', error);
-            res.status(500).json({ success: false, message: '服务器内部错误，请稍后重试' });
-        }
-    } else {
-        res.status(405).json({ message: '仅支持 POST 请求' });
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ valid: false, error: 'Missing password' });
     }
+
+    // 计算SHA256哈希
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // 验证密码
+    const validHashes = process.env.VIDEO_PASSWORD_HASHES.split(',');
+    const isValid = validHashes.includes(hashedPassword);
+
+    return res.status(200).json({ valid: isValid });
+  } catch (error) {
+    console.error('Verification error:', error);
+    return res.status(500).json({ valid: false, error: 'Internal server error' });
+  }
 }
