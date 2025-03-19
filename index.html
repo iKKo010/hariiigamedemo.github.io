@@ -947,16 +947,6 @@
 
     // 修改后的初始化函数
     async function initialize(lang) {
-        // 新增密码加载
-        try {
-            const authResponse = await fetch('auth.json');
-            if (!authResponse.ok) throw new Error('验证文件加载失败');
-            const authData = await authResponse.json();
-            appState.auth.validCodes = new Set(authData.validCodes);
-        } catch (error) {
-            console.error('密码系统初始化失败:', error);
-            appState.auth.validCodes = new Set(['emergency_code']); // 保留一个紧急代码
-        }
         // 移除所有active状态
         document.querySelectorAll('.lang-item').forEach(item => {
             item.classList.remove('active');
@@ -2032,20 +2022,34 @@
         }, 200);
     }
 
-    function handleAuth() {
+    async function handleAuth() {
         const modal = document.getElementById('authModal');
         const inputCode = document.getElementById('authCode').value.trim();
-        
-        // 添加哈希验证
-        const hashedInput = sha256(inputCode); // 需要引入SHA256库
-        if (appState.auth.validCodes.has(hashedInput)) {
-            closeAuthModal();
-            if (typeof modal._callback === 'function') {
-                modal._callback();
+        const hashedInput = sha256(inputCode);
+
+        try {
+            const response = await fetch('/api/auth/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ inputCode: hashedInput })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                closeAuthModal();
+                if (typeof modal._callback === 'function') {
+                    modal._callback();
+                }
+            } else {
+                alert(data.message);
+                document.getElementById('authCode').value = '';
             }
-        } else {
-            alert("验证码错误，请重新输入");
-            document.getElementById('authCode').value = '';
+        } catch (error) {
+            console.error('验证请求失败:', error);
+            alert('验证请求失败，请稍后重试');
         }
     }
 
