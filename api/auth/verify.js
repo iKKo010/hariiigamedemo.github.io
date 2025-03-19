@@ -1,28 +1,26 @@
-const validHash = process.env.VALID_HASH; // 从环境变量读取
+// api/auth/verify.js
+import sha256 from 'js-sha256';
 
-export default async function handler(req, res) {
-  // 处理CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://ikko010.github.io');
-  res.setHeader('Access-Control-Allow-Methods', 'POST');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// 从环境变量中读取有效密码哈希值
+const validCodes = new Set(process.env.VALID_CODES.split(','));
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+export default function handler(req, res) {
+    if (req.method === 'POST') {
+        try {
+            const { inputCode } = req.body;
+            // 对输入的密码进行哈希处理
+            const hashedInput = sha256(inputCode);
 
-  if (req.method === 'POST') {
-    try {
-      const { code } = req.body;
-      
-      // 对比哈希值
-      if (code === validHash) {
-        return res.status(200).json({ valid: true });
-      }
-      return res.status(401).json({ valid: false });
-    } catch (error) {
-      return res.status(500).json({ error: 'Server error' });
+            if (validCodes.has(hashedInput)) {
+                res.status(200).json({ success: true });
+            } else {
+                res.status(401).json({ success: false, message: '验证码错误，请重新输入' });
+            }
+        } catch (error) {
+            console.error('验证过程中出现错误:', error);
+            res.status(500).json({ success: false, message: '服务器内部错误，请稍后重试' });
+        }
+    } else {
+        res.status(405).json({ message: '仅支持 POST 请求' });
     }
-  }
-
-  return res.status(405).end();
 }
