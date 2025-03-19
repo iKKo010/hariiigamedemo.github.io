@@ -2021,15 +2021,8 @@
             modal.style.display = 'none';
         }, 200);
     }
-
-    async function handleAuth() {
-        const modal = document.getElementById('authModal');
-        const inputCode = document.getElementById('authCode').value.trim();
-        
-        try {
-            const hashedCode = sha256(inputCode);
             
-            // 更新为你的Vercel项目域名
+    // 更新为你的Vercel项目域名
     async function handleAuth() {
       const modal = document.getElementById('authModal');
       const inputCode = document.getElementById('authCode').value.trim();
