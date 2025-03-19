@@ -2,7 +2,7 @@ const validHash = process.env.VALID_HASH; // 从环境变量读取
 
 export default async function handler(req, res) {
   // 处理CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://ikko010.github.io');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
