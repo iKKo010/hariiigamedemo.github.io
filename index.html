@@ -2030,27 +2030,34 @@
             const hashedCode = sha256(inputCode);
             
             // 更新为你的Vercel项目域名
-            const response = await fetch('/api/auth/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include', // 新增
-              body: JSON.stringify({ code: hashedCode })
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const result = await response.json();
-            
-            if (result.valid) {
-            closeAuthModal();
-            modal._callback();
-            } else {
-            alert("验证码错误");
-            }
-        } catch (error) {
-            console.error('验证失败:', error);
-            alert(`验证失败: ${error.message}`);
+    async function handleAuth() {
+      const modal = document.getElementById('authModal');
+      const inputCode = document.getElementById('authCode').value.trim();
+      
+      try {
+        const hashedCode = sha256(inputCode);
+        
+        // 更新为你的Vercel项目域名
+        const response = await fetch('https://hariiigamedemo-github-io.vercel.app/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: hashedCode })
+        });
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const result = await response.json();
+        
+        if (result.valid) {
+          closeAuthModal();
+          modal._callback();
+        } else {
+          alert("验证码错误");
         }
+      } catch (error) {
+        console.error('验证失败:', error);
+        alert(`验证失败: ${error.message}`);
+      }
     }
 
     // 导航到赛事的公共方法
