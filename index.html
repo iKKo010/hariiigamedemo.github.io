@@ -947,16 +947,6 @@
 
     // 修改后的初始化函数
     async function initialize(lang) {
-        // 新增密码加载
-        try {
-            const authResponse = await fetch('auth.json');
-            if (!authResponse.ok) throw new Error('验证文件加载失败');
-            const authData = await authResponse.json();
-            appState.auth.validCodes = new Set(authData.validCodes);
-        } catch (error) {
-            console.error('密码系统初始化失败:', error);
-            appState.auth.validCodes = new Set(['emergency_code']); // 保留一个紧急代码
-        }
         // 移除所有active状态
         document.querySelectorAll('.lang-item').forEach(item => {
             item.classList.remove('active');
