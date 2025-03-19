@@ -2040,6 +2040,7 @@
         // 更新为你的Vercel项目域名
         const response = await fetch('https://hariiigamedemo-github-io.vercel.app/api/auth/verify', {
           method: 'POST',
+          mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: hashedCode })
         });
