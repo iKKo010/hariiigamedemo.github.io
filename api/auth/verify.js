@@ -1,21 +1,28 @@
-// 使用 SHA256 加密库
-const sha256 = require('js-sha256');
+const validHash = process.env.VALID_HASH; // 从环境变量读取
 
-module.exports = async (req, res) => {
-  // 从环境变量读取合法哈希值
-  const validHashes = process.env.AUTH_HASHES.split(',');
-  
-  // 获取前端传来的哈希值
-  const { code } = JSON.parse(req.body);
-  const clientHash = sha256(code);
-  
-  // CORS 配置
-  res.setHeader('Access-Control-Allow-Origin', 'https://ikko010.github.io/hariiigamedemo.github.io');
+export default async function handler(req, res) {
+  // 处理CORS
+  res.setHeader('Access-Control-Allow-Origin', 'https://ikko010.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'POST');
-  
-  if (validHashes.includes(clientHash)) {
-    res.status(200).json({ valid: true });
-  } else {
-    res.status(401).json({ valid: false });
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
-};
+
+  if (req.method === 'POST') {
+    try {
+      const { code } = req.body;
+      
+      // 对比哈希值
+      if (code === validHash) {
+        return res.status(200).json({ valid: true });
+      }
+      return res.status(401).json({ valid: false });
+    } catch (error) {
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
+
+  return res.status(405).end();
+}
