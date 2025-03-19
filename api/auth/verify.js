@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS'); // 新增 GET 方法支持
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Vary', 'Origin');
@@ -27,6 +27,40 @@ export default async function handler(req, res) {
     try {
       const { code } = req.body;
       
+      // 调试日志（Vercel部署日志可见）
+      console.log('Received hash:', code?.slice(0, 6) + '...');
+      console.log('Expected hash:', validHash?.slice(0, 6) + '...');
+
+      if (!code) {
+        return res.status(400).json({ error: 'Missing code parameter' });
+      }
+
+      // 统一转换为小写比较
+      if (code.toLowerCase() === validHash) {
+        return res.status(200).json({ 
+          valid: true,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      return res.status(401).json({ 
+        valid: false,
+        message: 'Invalid authorization code'
+      });
+      
+    } catch (error) {
+      console.error('Verification error:', error);
+      return res.status(500).json({ 
+        error: 'Internal server error',
+        details: error.message 
+      });
+    }
+  }
+
+  if (req.method === 'GET') {
+    try {
+      const { code } = req.query; // GET 请求从查询字符串中获取参数
+
       // 调试日志（Vercel部署日志可见）
       console.log('Received hash:', code?.slice(0, 6) + '...');
       console.log('Expected hash:', validHash?.slice(0, 6) + '...');
