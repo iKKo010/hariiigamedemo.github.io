@@ -863,10 +863,10 @@
 
         .video-watermark {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 20px;
+            left: 25px;
             color: rgba(255, 255, 255, 0.5);
-            font-size: 24px;
+            font-size: 40px;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
             z-index: 100;
@@ -1655,7 +1655,7 @@
                             <span>画质选择</span>
                             <i class="fas fa-chevron-right"></i>
                             <div class="submenu">
-                                <div class="menu-item" data-quality="auto"><i class="fas fa-check"></i>自动</div>
+                                <div class="menu-item" data-quality="auto"></i>自动</div>
                                 <div class="menu-item" data-quality="hd">高清 1080P</div>
                                 <div class="menu-item" data-quality="sd">标清 720P</div>
                             </div>
@@ -2032,20 +2032,33 @@
         }, 200);
     }
 
-    function handleAuth() {
+    async function handleAuth() {
         const modal = document.getElementById('authModal');
         const inputCode = document.getElementById('authCode').value.trim();
         
-        // 添加哈希验证
-        const hashedInput = sha256(inputCode); // 需要引入SHA256库
-        if (appState.auth.validCodes.has(hashedInput)) {
+        try {
+            const hashedCode = sha256(inputCode);
+            
+            // 更新为你的Vercel项目域名
+            const response = await fetch('https://hariiigamedemo-github-gp22cbe72-ikikos-projects.vercel.app/api/auth/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: hashedCode })
+            });
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const result = await response.json();
+            
+            if (result.valid) {
             closeAuthModal();
-            if (typeof modal._callback === 'function') {
-                modal._callback();
+            modal._callback();
+            } else {
+            alert("验证码错误");
             }
-        } else {
-            alert("验证码错误，请重新输入");
-            document.getElementById('authCode').value = '';
+        } catch (error) {
+            console.error('验证失败:', error);
+            alert(`验证失败: ${error.message}`);
         }
     }
 
