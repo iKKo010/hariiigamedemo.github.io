@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>张本智和赛事记录汇总</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     <style>
         :root {
             --blue-50: #f0f9ff;
@@ -2023,34 +2022,35 @@
     }
 
     async function handleAuth() {
-        const modal = document.getElementById('authModal');
-        const inputCode = document.getElementById('authCode').value.trim();
-        const hashedInput = sha256(inputCode);
-
-        try {
-            const response = await fetch('/api/auth/verify', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ inputCode: hashedInput })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                closeAuthModal();
-                if (typeof modal._callback === 'function') {
-                    modal._callback();
-                }
-            } else {
-                alert(data.message);
-                document.getElementById('authCode').value = '';
-            }
-        } catch (error) {
-            console.error('验证请求失败:', error);
-            alert('验证请求失败，请稍后重试');
+      const modal = document.getElementById('authModal');
+      const inputCode = document.getElementById('authCode').value.trim();
+      
+      try {
+        const response = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password: inputCode })
+        });
+    
+        if (!response.ok) throw new Error('验证请求失败');
+        
+        const result = await response.json();
+        
+        if (result.valid) {
+          closeAuthModal();
+          if (typeof modal._callback === 'function') {
+            modal._callback();
+          }
+        } else {
+          alert("验证码错误，请重新输入");
+          document.getElementById('authCode').value = '';
         }
+      } catch (error) {
+        console.error('验证失败:', error);
+        alert("验证服务暂时不可用，请稍后再试");
+      }
     }
 
     // 导航到赛事的公共方法
