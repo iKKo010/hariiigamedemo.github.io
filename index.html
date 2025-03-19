@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>张本智和赛事记录汇总</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     <style>
         :root {
             --blue-50: #f0f9ff;
@@ -304,28 +305,6 @@
             transform: scale(1.1);
         }
 
-        /* 新增到原有样式表 */
-        .video-frame {
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            background: var(--blue-50);
-        }
-
-        .video-container {
-            margin: 1.5rem 0;
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9比例 */
-            height: 0;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
         /* 验证模态框 */
         .auth-modal {
             position: fixed;
@@ -349,19 +328,11 @@
         }
 
         .auth-input {
-            width: 100%;
+            width: 90%;
             padding: 12px;
             border: 2px solid var(--blue-200);
             border-radius: 6px;
             margin: 1rem 0;
-        }
-
-        /* 视频容器 */
-        .video-container {
-            margin-top: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .welcome-message {
@@ -546,23 +517,26 @@
             margin-left: 4px;
         }
 
-            /* 视频播放器容器 */
+        /* 视频播放器容器 */
         .custom-video-player {
             width: 100%;
             max-width: 800px;
             margin: 20px auto;
             background: #000;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
         }
 
         /* 视频主体 */
         .video-main {
             width: 100%;
             height: 0;
-            padding-bottom: 56.25%; /* 16:9比例 */
+            padding-bottom: 56.25%;
             position: relative;
+            background: #000;
         }
 
         #customVideo {
@@ -580,13 +554,14 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-            padding: 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             opacity: 0;
             transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
         }
 
         .custom-video-player:hover .video-controls {
@@ -595,17 +570,58 @@
 
         /* 进度条样式 */
         .progress-container {
-            width: 100%;
-            height: 4px;
+            position: relative;
+            height: 6px;
             background: rgba(255,255,255,0.2);
             cursor: pointer;
+            margin: 8px 0;
         }
 
         .progress-bar {
             height: 100%;
             background: var(--blue-400);
-            width: 0;
-            transition: width 0.1s;
+            position: relative;
+            transition: none; /* 移除过渡效果 */
+        }
+
+        /* 新增滑块样式 */
+        .progress-thumb {
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .progress-container:hover .progress-bar::after {
+            opacity: 1;
+        }
+
+        .progress-container.dragging .progress-thumb,
+        .progress-container:hover .progress-thumb {
+            opacity: 1;
         }
 
         /* 控制按钮组 */
@@ -676,92 +692,6 @@
             border-radius: 8px;
         }
 
-            /* 增强播放器样式 */
-            .custom-video-player {
-            width: 100%;
-            max-width: 800px;
-            margin: 20px auto;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        /* 视频主体增强 */
-        .video-main {
-            width: 100%;
-            height: 0;
-            padding-bottom: 56.25%;
-            position: relative;
-            background: #000;
-        }
-
-        #customVideo {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        /* 增强控制条 */
-        .video-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 12px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            backdrop-filter: blur(4px);
-        }
-
-        .custom-video-player:hover .video-controls {
-            opacity: 1;
-        }
-
-        /* 增强进度条 */
-        .progress-container {
-            position: relative;
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            cursor: pointer;
-            margin: 8px 0;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: var(--blue-400);
-            position: relative;
-        }
-
-        /* 进度条滑块 */
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            right: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .progress-container:hover .progress-bar::after {
-            opacity: 1;
-        }
-
         /* 暂停状态覆盖层 */
         .pause-overlay {
             position: absolute;
@@ -788,15 +718,15 @@
             justify-content: space-between;
         }
 
-            /* 画质选择菜单 */
-            .quality-menu {
+        /* 画质选择菜单 */
+        .quality-menu {
             position: absolute;
             top: 20px;
             right: 20px;
             background: rgba(0,0,0,0.8);
             border-radius: 4px;
             padding: 8px;
-            display: none;
+            display: none !important; 
         }
 
         .quality-item {
@@ -828,6 +758,71 @@
         .control-button:hover {
             color: var(--blue-300);
             transform: scale(1.1);
+        }
+
+        /* 设置菜单容器 */
+        .settings-menu {
+            position: absolute;
+            bottom: unset;  /* 移除固定底部定位 */
+            right: unset;   /* 移除固定右侧定位 */
+            top: -160px;    /* 根据菜单高度调整 */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            border-radius: 6px;
+            padding: 8px 0;
+            min-width: 140px;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1001;
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--blue-700);
+        }
+
+        .menu-item {
+            position: relative;
+            color: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .submenu {
+            position: absolute;
+            left: 100%;
+            right: unset;  /* 改为向左展开 */
+            bottom: 100%;
+            background: rgba(0,0,0,0.9);
+            border-radius: 8px;
+            min-width: 120px;
+            padding: 6px 0;
+            display: none;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.2); /* 阴影方向调整 */
+        }
+
+        .menu-item.active > .submenu {
+            display: block;
+        }
+
+        .menu-item i {
+            margin-left: 12px;
+            font-size: 0.9em;
+            color: var(--blue-400);
+        }
+
+        .selected {
+            color: var(--blue-400);
+            font-weight: 600;
         }
 
         /* 增强时间显示 */
@@ -864,6 +859,18 @@
 
         .btn-close:hover {
             background: rgba(255,255,255,0.2);
+        }
+
+        .video-watermark {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            z-index: 100;
+            pointer-events: none;
         }
         
     </style>
@@ -909,9 +916,9 @@
 
     <div class="auth-modal" id="authModal">
         <div class="modal-content">
-            <h3>视频身份验证</h3>
+            <h3>身份验证</h3>
             <input type="password" class="auth-input" id="authCode" placeholder="请输入访问密码">
-            <p class="text-hint" style="color:var(--blue-600);font-size:0.9rem">请联系管理员获取观看密码</p>
+            <p class="text-hint" style="color:var(--blue-600);font-size:0.9rem">内测功能 仅限部分用户使用</p>
             <div class="nav-controls">
                 <button onclick="handleAuth()">验证</button>
                 <button onclick="closeAuthModal()">取消</button>
@@ -933,13 +940,23 @@
             activeQuery: "" // 新增当前搜索词状态
         },
         auth: {
-        validCodes: new Set(["123456", "654321" /* 填入50个有效密码 */]),
+        validCodes: new Set(),
         currentVideoUrl: null
         }
     };
 
     // 修改后的初始化函数
     async function initialize(lang) {
+        // 新增密码加载
+        try {
+            const authResponse = await fetch('auth.json');
+            if (!authResponse.ok) throw new Error('验证文件加载失败');
+            const authData = await authResponse.json();
+            appState.auth.validCodes = new Set(authData.validCodes);
+        } catch (error) {
+            console.error('密码系统初始化失败:', error);
+            appState.auth.validCodes = new Set(['emergency_code']); // 保留一个紧急代码
+        }
         // 移除所有active状态
         document.querySelectorAll('.lang-item').forEach(item => {
             item.classList.remove('active');
@@ -1288,37 +1305,37 @@
 
     // 渲染项目详情
     function renderProjectDetails(state) {
-    const content = document.getElementById('contentDetails');
-    const event = getEventData(state);
-    const rounds = event.项目[state.project];
-    
-    content.innerHTML = `
-        <h2>${event.比赛名称} - ${state.project}</h2>
-        <div class="match-details">
-            <div class="meta-info">
-                <span><i class="fas fa-calendar-day"></i> ${event.日期}</span>
-                <span><i class="fas fa-map-marker-alt"></i> ${event.地点}</span>
-            </div>
-            <div class="rounds-list">
-                ${rounds.map(round => `
-                    <div class="round-item ${round.结果} ${round.决赛 ? 'final-win' : ''}">
-                        <div class="round-header">
-                            <span class="stage">${round.回战}</span>
-                            <span class="vs">vs</span>
-                            <span class="opponent">${round.对手}</span>
+        const content = document.getElementById('contentDetails');
+        const event = getEventData(state);
+        const rounds = event.项目[state.project];
+        
+        content.innerHTML = `
+            <h2>${event.比赛名称} - ${state.project}</h2>
+            <div class="match-details">
+                <div class="meta-info">
+                    <span><i class="fas fa-calendar-day"></i> ${event.日期}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${event.地点}</span>
+                </div>
+                <div class="rounds-list">
+                    ${rounds.map(round => `
+                        <div class="round-item ${round.结果} ${round.决赛 ? 'final-win' : ''}">
+                            <div class="round-header">
+                                <span class="stage">${round.回战}</span>
+                                <span class="vs">vs</span>
+                                <span class="opponent">${round.对手}</span>
+                            </div>
+                            <div class="round-details">
+                                <span class="score">${round.比分}</span>
+                                ${round.决赛 ? '<i class="fas fa-trophy icon-trophy"></i>' : ''}
+                                ${showVideoButton(round)} <!-- 新增视频按钮 -->
+                            </div>
+                            ${round.详情 ? `<p class="round-note">${round.详情}</p>` : ''}
                         </div>
-                        <div class="round-details">
-                            <span class="score">${round.比分}</span>
-                            ${round.决赛 ? '<i class="fas fa-trophy icon-trophy"></i>' : ''}
-                            ${showVideoButton(round)} <!-- 新增视频按钮 -->
-                        </div>
-                        ${round.详情 ? `<p class="round-note">${round.详情}</p>` : ''}
-                    </div>
-                `).join('')}
+                    `).join('')}
+                </div>
             </div>
-        </div>
-    `;
-}
+        `;
+    }
 
     // 修改updatePath函数
     function updatePath() {
@@ -1631,10 +1648,36 @@
                             <div class="quality-item" data-quality="hd">高清</div>
                             <div class="quality-item" data-quality="sd">标清</div>
                         </div>
+                        <div class="video-watermark">Hariigame0v0</div>
+                    </div>
+                    <div class="settings-menu" id="settingsMenu">
+                        <div class="menu-item" data-submenu="quality">
+                            <span>画质选择</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <div class="submenu">
+                                <div class="menu-item" data-quality="auto"><i class="fas fa-check"></i>自动</div>
+                                <div class="menu-item" data-quality="hd">高清 1080P</div>
+                                <div class="menu-item" data-quality="sd">标清 720P</div>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-submenu="speed">
+                            <span>播放速度</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <div class="submenu">
+                                <div class="menu-item" data-speed="0.5">0.5x</div>
+                                <div class="menu-item selected" data-speed="1.0">1.0x</div>
+                                <div class="menu-item" data-speed="1.5">1.5x</div>
+                                <div class="menu-item" data-speed="2.0">2.0x</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="video-controls">
-                        <div class="progress-container" onclick="handleProgressClick(event)">
-                            <div class="progress-bar" id="videoProgress"></div>
+                        <div class="progress-container"
+                            onmousedown="startDrag(event)"
+                            id="progressContainer">
+                            <div class="progress-bar" id="videoProgress">
+                                <div class="progress-thumb"></div>
+                            </div>
                         </div>
                         <div class="control-buttons">
                             <div class="left-controls">
@@ -1647,7 +1690,7 @@
                                 </span>
                             </div>
                             <div class="right-controls">
-                                <button class="control-button" onclick="toggleQualityMenu()">
+                                <button class="control-button" onclick="toggleSettingsMenu()">
                                     <i class="fas fa-cog"></i>
                                 </button>
                                 <button class="control-button" onclick="toggleMute()">
@@ -1706,10 +1749,11 @@
             });
 
             // 进度更新
+            // 修改原timeupdate事件处理
             video.addEventListener('timeupdate', () => {
-                if (!isSeeking) {
+                if (!isDragging) { // 拖拽时不自动更新
                     const progress = (video.currentTime / video.duration) * 100;
-                    document.getElementById('videoProgress').style.width = progress + '%';
+                    updateProgressBar(progress);
                     document.getElementById('currentTime').textContent = formatTime(video.currentTime);
                 }
             });
@@ -1735,6 +1779,158 @@
         });
     }
 
+    // 新增拖拽相关变量
+    let isDragging = false;
+
+    // 修改后的handleProgressClick函数
+    function startDrag(e) {
+        isDragging = true;
+        const container = document.getElementById('progressContainer');
+        container.classList.add('dragging');
+        
+        const video = document.getElementById('customVideo');
+        const rect = container.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        video.currentTime = pos * video.duration;
+
+        document.addEventListener('mousemove', handleDrag);
+        document.addEventListener('mouseup', stopDrag);
+    }
+
+    function handleDrag(e) {
+        if (!isDragging) return;
+        const video = document.getElementById('customVideo');
+        const container = document.getElementById('progressContainer');
+        const rect = container.getBoundingClientRect();
+        
+        let pos = (e.clientX - rect.left) / rect.width;
+        pos = Math.max(0, Math.min(1, pos)); // 限制在0-1之间
+        
+        video.currentTime = pos * video.duration;
+        updateProgressBar(pos * 100);
+    }
+
+    function stopDrag() {
+        isDragging = false;
+        document.getElementById('progressContainer').classList.remove('dragging');
+        document.removeEventListener('mousemove', handleDrag);
+        document.removeEventListener('mouseup', stopDrag);
+    }
+
+    // 新增进度更新函数
+    function updateProgressBar(percentage) {
+        const progressBar = document.getElementById('videoProgress');
+        progressBar.style.width = percentage + '%';
+    }
+
+    // 菜单交互逻辑
+    let currentMenu = null;
+
+    function toggleSettingsMenu() {
+        const menu = document.getElementById('settingsMenu');
+        const gearIcon = document.querySelector('.fa-cog');
+        const gearRect = gearIcon.getBoundingClientRect();
+        const playerRect = document.querySelector('.custom-video-player').getBoundingClientRect();
+
+        // 动态计算位置
+        menu.style.left = `${gearRect.left - playerRect.left + gearRect.width/2}px`;
+        menu.style.top = `${gearRect.top - playerRect.top - 10}px`;
+        menu.style.transform = 'translate(-50%, -100%)';
+
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        currentMenu = menu.style.display === 'block' ? menu : null;
+    }
+
+    // 点击外部关闭菜单
+    document.addEventListener('click', (e) => {
+        if (!currentMenu) return;
+        if (!currentMenu.contains(e.target) && !e.target.closest('.fa-cog')) {
+            currentMenu.style.display = 'none';
+            currentMenu = null;
+        }
+        // 检查点击是否在菜单系统内
+        const isClickInside = currentMenu.contains(e.target) || 
+            e.target.closest('.submenu') || 
+            e.target.closest('.fa-cog');
+        
+        if (!isClickInside) {
+            // 关闭所有菜单和子菜单
+            currentMenu.style.display = 'none';
+            document.querySelectorAll('.submenu').forEach(sub => sub.style.display = 'none');
+            document.querySelectorAll('.menu-item.active').forEach(item => 
+                item.classList.remove('active')
+            );
+            currentMenu = null;
+        }
+    });
+
+    // 处理菜单点击
+    document.addEventListener('click', (e) => {
+        const menuItem = e.target.closest('.menu-item');
+        if (!menuItem) return;
+        
+        // 处理子菜单切换
+        if (menuItem.dataset.submenu) {
+            document.querySelectorAll('.menu-item.active').forEach(item => {
+                if (item !== menuItem) item.classList.remove('active');
+            });
+            menuItem.classList.toggle('active');
+            return;
+        }
+
+        // 处理画质选择（前端模拟）
+        if (menuItem.dataset.quality) {
+            document.querySelectorAll('[data-quality]').forEach(item => 
+                item.classList.remove('selected'));
+            menuItem.classList.add('selected');
+            showToast(`画质已切换至：${menuItem.textContent.trim()}`);
+        }
+
+        // 处理播放速度
+        if (menuItem.dataset.speed) {
+            const video = document.getElementById('customVideo');
+            try {
+                video.playbackRate = parseFloat(menuItem.dataset.speed);
+                document.querySelectorAll('[data-speed]').forEach(item => 
+                    item.classList.remove('selected'));
+                menuItem.classList.add('selected');
+                showToast(`播放速度：${menuItem.dataset.speed}x`);
+            } catch (error) {
+                console.error('速度设置失败:', error);
+            }
+        }
+    });
+
+    // 显示操作提示
+    function showToast(msg) {
+        const existingToast = document.querySelector('.video-toast');
+        if (existingToast) existingToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'video-toast';
+        toast.innerHTML = `
+            <div style="
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.8);
+                color: var(--blue-400);
+                padding: 12px 24px;
+                border-radius: 24px;
+                font-size: 0.9rem;
+                backdrop-filter: blur(4px);
+                border: 1px solid var(--blue-700);
+                animation: toastFade 2s ease-out;
+            ">
+                <i class="fas fa-check-circle" style="margin-right:8px;"></i>${msg}
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
     /* 播放器控制函数 */
     function togglePlay() {
         const video = document.getElementById('customVideo');
@@ -1743,21 +1939,40 @@
 
     function toggleMute() {
         const video = document.getElementById('customVideo');
+        const volumeSlider = document.getElementById('volumeSlider');
+        
+        // 切换静音时同步音量滑块
         video.muted = !video.muted;
-        document.getElementById('volumeIcon').className = 
-            video.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        
+        if (video.muted) {
+            volumeSlider.value = 0;
+            document.getElementById('volumeIcon').className = 'fas fa-volume-mute';
+        } else {
+            volumeSlider.value = video.volume;
+            document.getElementById('volumeIcon').className = 
+                video.volume > 0 ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+        }
     }
 
     function updateVolume(value) {
         const video = document.getElementById('customVideo');
-        video.volume = value;
-        if (value == 0) {
+        const newVolume = parseFloat(value);
+        
+        // 当调整音量时自动解除静音
+        if (newVolume > 0 && video.muted) {
+            video.muted = false;
+        }
+        
+        video.volume = newVolume;
+
+        // 根据实际静音状态更新图标
+        if (video.muted || newVolume === 0) {
             document.getElementById('volumeIcon').className = 'fas fa-volume-mute';
         } else {
             document.getElementById('volumeIcon').className = 'fas fa-volume-up';
         }
     }
-
+    
     // 新增功能函数
     function toggleQualityMenu() {
         const menu = document.querySelector('.quality-menu');
@@ -1821,7 +2036,9 @@
         const modal = document.getElementById('authModal');
         const inputCode = document.getElementById('authCode').value.trim();
         
-        if (appState.auth.validCodes.has(inputCode)) {
+        // 添加哈希验证
+        const hashedInput = sha256(inputCode); // 需要引入SHA256库
+        if (appState.auth.validCodes.has(hashedInput)) {
             closeAuthModal();
             if (typeof modal._callback === 'function') {
                 modal._callback();
@@ -1871,6 +2088,13 @@
         // 空实现或改为控制台输出
         console.error(msg);
     }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && currentMenu) {
+            currentMenu.style.display = 'none';
+            currentMenu = null;
+        }
+    });
 
     // 初始化加载
     window.onload = () => initialize('cn');
